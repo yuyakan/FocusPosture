@@ -11,16 +11,52 @@ import Charts
 
 struct HomeView: View {
     @ObservedObject var measuremetViewController = SensorMeasurementManager()
+    @State private var showMeasurementView = false
     
     var body: some View {
         NavigationView{
-            VStack{
-                //　首振るやつ
+            ZStack{
+                VStack{
+                    //　首振るやつ
+                    
+                    Spacer()
+                    
+                    // 計測画面遷移ボタン
+                    Button(action: {
+                        showMeasurementView = true
+                    }) {
+                        Text("計測開始")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(width: 200, height: 60)
+                            .background(Color.blue)
+                            .cornerRadius(30)
+                    }
+                    .padding(.bottom, 50)
+                }
                 
-                // 計測画面遷移ボタン
+                // グラフボタンを右上に配置
+                VStack{
+                    HStack{
+                        Spacer()
+                        NavigationLink(destination: GraphView(repository: FakeFocusSessionDataRepository())) {
+                            Image(systemName: "chart.line.uptrend.xyaxis")
+                                .font(.system(size: 24))
+                                .foregroundColor(.white)
+                                .frame(width: 50, height: 50)
+                                .background(Color.blue)
+                                .clipShape(Circle())
+                        }
+                        .padding(.trailing, 20)
+                        .padding(.top, 20)
+                    }
+                    Spacer()
+                }
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
-        //　グラフ画面に遷移
+        .fullScreenCover(isPresented: $showMeasurementView) {
+            MeasurementView(measuremetViewController: measuremetViewController)
+        }
     }
 }

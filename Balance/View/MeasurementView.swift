@@ -11,9 +11,17 @@ import Charts
 
 struct MeasurementView: View {
     @ObservedObject var measuremetViewController: SensorMeasurementManager
+    @State private var isMeasuring = true
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         VStack{
+            // タイトル表示
+            Text(isMeasuring ? "計測中" : "結果")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .padding(.top, 50)
+            
             Spacer()
             
             // グラフ表示部分
@@ -33,25 +41,39 @@ struct MeasurementView: View {
             }
             
             Spacer()
-            VStack {
-                HStack{
-                    Button(action: {
-                        measuremetViewController.startCalc()
-                    }) {
-                        Text("start")
-                            .frame(width: 160.0, height: 120.0)
-                    }
-                    
-                    Button(action: {
-                        measuremetViewController.stopCalc()
-                    }) {
-                        Text("stop")
-                            .frame(width: 160.0, height: 120.0)
-                    }
-                    .disabled(!measuremetViewController.isStartingMeasure)
-                    .opacity(measuremetViewController.isStartingMeasure ? 1 : 0.3)
+            
+            // ボタン部分
+            if isMeasuring {
+                // 計測中は終了ボタンのみ
+                Button(action: {
+                    measuremetViewController.stopCalc()
+                    isMeasuring = false
+                }) {
+                    Text("終了")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(width: 200, height: 60)
+                        .background(Color.red)
+                        .cornerRadius(30)
                 }
+                .padding(.bottom, 50)
+            } else {
+                // 結果画面では完了ボタン
+                Button(action: {
+                    dismiss()
+                }) {
+                    Text("完了")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(width: 200, height: 60)
+                        .background(Color.blue)
+                        .cornerRadius(30)
+                }
+                .padding(.bottom, 50)
             }
+        }
+        .onAppear {
+            measuremetViewController.startCalc()
         }
     }
 }
