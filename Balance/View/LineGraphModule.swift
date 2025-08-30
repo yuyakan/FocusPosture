@@ -25,6 +25,7 @@ struct LineGraphModule: View {
                 x: .value("Time", point.time),
                 y: .value("Value", point.value)
             )
+            .interpolationMethod(.catmullRom)
             .foregroundStyle(
                 LinearGradient(
                     colors: [Color.cyan, Color.blue, Color.purple.opacity(0.8)],
