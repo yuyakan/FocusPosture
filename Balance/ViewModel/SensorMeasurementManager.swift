@@ -8,9 +8,12 @@
 import CoreMotion
 import SwiftUI
 
+let threshold = 50.0
+
 class SensorMeasurementManager: UIViewController, CMHeadphoneMotionManagerDelegate, ObservableObject{
     @Published var isStartingMeasure = false
     @Published var graphDataPoints: [GraphDataPoint] = [] // グラフ用データ
+    @Published var displayScore: Double = 100
     var totalGraphDataPoints: [GraphDataPoint] = []
     let airpods = CMHeadphoneMotionManager()
     var elapsedTime : [Double] = []
@@ -90,7 +93,24 @@ class SensorMeasurementManager: UIViewController, CMHeadphoneMotionManagerDelega
             // 最近10秒間のデータポイントのみを保持
             let tenSecondsAgo = currentElapsedTime - 10.0
             self.graphDataPoints = self.totalGraphDataPoints.filter { $0.time >= tenSecondsAgo }
+            if self.scoreUpdateTime < currentElapsedTime {
+                self.caluculateDisplayScore()
+                self.scoreUpdateTime += 1.0
+            }
         }
+    }
+
+    var scoreUpdateTime = 0.0
+    var trueOrFalseList: [Bool] = []
+    private func caluculateDisplayScore() {
+        let recentScores = scores.suffix(100)
+        let sum = recentScores.reduce(into: 0.0) { $0 += $1.score }
+        trueOrFalseList.append(sum < threshold)
+
+        let recent10 = trueOrFalseList.suffix(10)
+        let trueCount = recent10.filter { $0 }.count
+        let trueRatio = Double(trueCount) / Double(recent10.count)
+        displayScore = trueRatio * 100.0
     }
     
     private func updateTime(t: Double) {
