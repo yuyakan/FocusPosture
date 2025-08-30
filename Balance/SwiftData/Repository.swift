@@ -87,8 +87,8 @@ class FocusSessionDataRepository: FocusSessionDataRepositoryProtocol {
         self.modelContainer = try! ModelContainer(for: schema, configurations: [modelConfiguration])
 
 
-        // Insert Dummy あとで消す <- Write for Demo if eneded
         Task {
+            // DBが空の場合、ダミーデータを追加
             let dataInDB = try? await self.get(with: .now)
             if dataInDB?.count == 0 {
                 let dummyData = self.getDummyData()
