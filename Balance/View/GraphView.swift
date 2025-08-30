@@ -198,5 +198,5 @@ extension DailySection {
 }
 
 #Preview {
-     GraphView(repository: FakeFocusSessionDataRepository())
+    GraphView(repository: FocusSessionDataRepository.shared)
 }

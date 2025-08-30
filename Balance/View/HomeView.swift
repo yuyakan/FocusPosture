@@ -39,7 +39,7 @@ struct HomeView: View {
                 VStack{
                     HStack{
                         Spacer()
-                        NavigationLink(destination: GraphView(repository: FakeFocusSessionDataRepository())) {
+                        NavigationLink(destination: GraphView(repository: FocusSessionDataRepository.shared)) {
                             Image(systemName: "chart.line.uptrend.xyaxis")
                                 .font(.system(size: 24))
                                 .foregroundColor(.white)
