@@ -11,13 +11,10 @@ import SwiftUI
 class SensorMeasurementManager: UIViewController, CMHeadphoneMotionManagerDelegate, ObservableObject{
     @Published var isStartingMeasure = false
     @Published var graphDataPoints: [GraphDataPoint] = [] // グラフ用データ
-    var graphValues: [Double] = []
     let airpods = CMHeadphoneMotionManager()
     var elapsedTime : [Double] = []
+    var scores: [FocusData] = []
     var nowTime: Double = 0.0
-    
-    var accel = SensorData()
-    var rotate = SensorData()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,12 +34,10 @@ class SensorMeasurementManager: UIViewController, CMHeadphoneMotionManagerDelega
     }
     
     private func resetMeasureStatus() {
-        graphValues = []
+        scores = []
         graphDataPoints = [] // グラフデータもリセット
         nowTime = 0.0
         elapsedTime.removeAll()
-        accel = SensorData()
-        rotate = SensorData()
     }
     
     private func startGettingData() {
@@ -63,31 +58,18 @@ class SensorMeasurementManager: UIViewController, CMHeadphoneMotionManagerDelega
     }
     
     private func registData(_ data: CMDeviceMotion){
-        updateSensorData(data: data)
-        updateGraphValue(data: data)
+        calculateFocusData(data: data)
         updateTime(t: data.timestamp)
         updateGraphDataPoints(data: data) // グラフデータポイントを更新
     }
     
-    private func updateSensorData(data: CMDeviceMotion) {
-        // accelerationデータを常に取得
-        accel.x.append(data.userAcceleration.x)
-        accel.y.append(data.userAcceleration.y)
-        accel.z.append(data.userAcceleration.z)
-        
-        // rotationRateデータを常に取得
-        rotate.x.append(data.rotationRate.x)
-        rotate.y.append(data.rotationRate.y)
-        rotate.z.append(data.rotationRate.z)
-    }
-    
-    private func updateGraphValue(data: CMDeviceMotion) {
-        // accelerationとrotationRateの合成値をグラフ表示用に計算
+    private func calculateFocusData(data: CMDeviceMotion) {
         let accelValue = abs(data.userAcceleration.x) + abs(data.userAcceleration.y) + abs(data.userAcceleration.z)
-        let rotateValue = (abs(data.rotationRate.x) + abs(data.rotationRate.y) + abs(data.rotationRate.z)) * 0.3
-        let combinedValue = accelValue + rotateValue
-        
-        graphValues.append(combinedValue)
+        let rotateValue = abs(data.rotationRate.x) + abs(data.rotationRate.y) + abs(data.rotationRate.z)
+        // TODO: スコアのロジックを検討
+        let score = accelValue + rotateValue
+        let focusData = FocusData(score: score, attitude: data.attitude)
+        scores.append(focusData)
     }
     
     // グラフ用データポイントを更新
