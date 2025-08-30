@@ -15,36 +15,66 @@ struct GraphView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                // 週間グラフセクション
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("週間の集中時間")
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                        .padding(.horizontal, 16)
-                    
-                    WeeklyBarChart(dailyTotals: dailyFocusTotals)
-                        .frame(height: 200)
-                        .padding(.horizontal, 16)
-                }
-                
-                // 日別記録セクション
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("日別の記録")
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                        .padding(.horizontal, 16)
-                    
-                    ForEach(groupedByDay, id: \.key) { dateKey, sessions in
-                        DailySection(focusSessionDatas: sessions)
-                            .padding(.horizontal, 16)
+        ZStack {
+            // ダークモード固定背景
+            LinearGradient(
+                colors: [
+                    Color.black,
+                    Color(red: 0.1, green: 0.1, blue: 0.2),
+                    Color(red: 0.05, green: 0.05, blue: 0.15)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea(.all)
+            
+            ScrollView {
+                VStack(spacing: 30) {
+                    // ヘッダー
+                    VStack(spacing: 15) {
+                        Text("記録")
+                            .font(.system(size: 36, weight: .bold, design: .rounded))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [.white, .white.opacity(0.8)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 2)
+                            .padding(.top, 20)
                     }
+                    
+                    // 週間グラフセクション
+                    GraphSectionCard(
+                        title: "週間の集中時間",
+                        icon: "chart.bar.fill"
+                    ) {
+                        WeeklyBarChart(dailyTotals: dailyFocusTotals)
+                            .frame(height: 200)
+                    }
+                    .padding(.horizontal, 8)
+
+                    // 日別記録セクション
+                    GraphSectionCard(
+                        title: "日別の記録",
+                        icon: "calendar"
+                    ) {
+                        VStack(spacing: 16) {
+                            ForEach(groupedByDay, id: \.key) { dateKey, sessions in
+                                DailySection(focusSessionDatas: sessions)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 8)
+
+                    Spacer(minLength: 30)
                 }
+                .padding(.vertical, 20)
             }
-            .padding(.vertical, 16)
         }
-        .navigationTitle("記録")
+        .preferredColorScheme(.dark)  // ダークモード固定
+        .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .toolbar {
@@ -53,7 +83,18 @@ struct GraphView: View {
                     dismiss()
                 }) {
                     Image(systemName: "chevron.left")
-                        .foregroundColor(.primary)
+                        .font(.title2)
+                        .foregroundColor(.white)
+                        .frame(width: 44, height: 44)
+                        .background(
+                            Circle()
+                                .fill(Color(white: 0.2).opacity(0.9))
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                                )
+                        )
+                        .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 2)
                 }
             }
         }
@@ -122,28 +163,43 @@ struct WeeklyBarChart: View {
                 x: .value("Date", data.date, unit: .day),
                 y: .value("Minutes", data.totalMinutes)
             )
-            .foregroundStyle(Color.blue.gradient)
-            .opacity(data.totalMinutes > 0 ? 1 : 0)
+            .foregroundStyle(
+                LinearGradient(
+                    colors: [Color.cyan, Color.blue, Color.purple.opacity(0.7)],
+                    startPoint: .bottom,
+                    endPoint: .top
+                )
+            )
+            .opacity(data.totalMinutes > 0 ? 1 : 0.3)
         }
         .chartXAxis {
             AxisMarks(values: .stride(by: .day)) { _ in
-                AxisGridLine()
-                AxisTick()
+                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                    .foregroundStyle(.white.opacity(0.3))
+                AxisTick(stroke: StrokeStyle(lineWidth: 1))
+                    .foregroundStyle(.white.opacity(0.5))
                 AxisValueLabel(format: .dateTime.weekday(.abbreviated))
+                    .foregroundStyle(.white.opacity(0.8))
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
             }
         }
         .chartYAxis {
             AxisMarks { _ in
-                AxisGridLine()
-                AxisTick()
+                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                    .foregroundStyle(.white.opacity(0.3))
+                AxisTick(stroke: StrokeStyle(lineWidth: 1))
+                    .foregroundStyle(.white.opacity(0.5))
                 AxisValueLabel()
+                    .foregroundStyle(.white.opacity(0.8))
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
             }
         }
-        .chartYAxisLabel("Focus Time (min)")
+        .chartYAxisLabel("Focus Time (min)", alignment: .leading)
+        .foregroundStyle(.white.opacity(0.8))
+        .font(.system(size: 14, weight: .medium, design: .rounded))
         .chartPlotStyle { plotArea in
             plotArea
-                .background(Color.gray.opacity(0.05))
-                .cornerRadius(8)
+                .background(.clear)
         }
         .onAppear {
             animateBarChart()
@@ -183,29 +239,50 @@ private struct DailySection: View {
             ForEach(Array(focusSessionDatas.enumerated()), id: \.element.id) { index, data in
                 RecordCell(focusSessionData: data, recordNumber: index + 1)
                     .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color(UIColor.tertiarySystemBackground))
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(white: 0.2).opacity(0.8))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                            )
                     )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 0)
-                            .stroke(Color.gray.opacity(0.1), lineWidth: 0.5)
-                    )
+                    .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 2)
             }
         }
         .padding(.top, 30)
         .padding(.bottom, 16)
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 8)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(UIColor.secondarySystemBackground))
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color(white: 0.12).opacity(0.95))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(0.4), radius: 10, x: 0, y: 5)
         )
         .overlay(alignment: .topLeading) {
             Text(dateHeaderText)
-                .font(.system(size: 12, weight: .semibold))
+                .font(.system(size: 14, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(RoundedRectangle(cornerRadius: 8).fill(Color.blue))
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.blue, Color.cyan],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .overlay(
+                            Capsule()
+                                .stroke(.white.opacity(0.3), lineWidth: 1)
+                        )
+                        .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
+                )
+                .offset(x: 5, y: -12)
         }
     }
     
@@ -236,74 +313,83 @@ extension DailySection {
             VStack(spacing: 0) {
                 HStack {
                     Text(formattedTimeRange)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.primary)
+                        .font(.system(size: 15, weight: .medium, design: .rounded))
+                        .foregroundColor(.white.opacity(0.9))
                     
                     Spacer()
                     
-                    HStack(spacing: 12) {
-                        VStack(alignment: .trailing, spacing: 2) {
-                            Text("スコア")
-                                .font(.system(size: 10))
-                                .foregroundColor(.secondary)
-                            Text("\(averageScore)")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.primary)
-                        }
+                    HStack(spacing: 8) {
+                        StatisticItem(
+                            title: "スコア",
+                            value: "\(averageScore)",
+                            icon: "brain.head.profile"
+                        )
                         
-                        VStack(alignment: .trailing, spacing: 2) {
-                            Text("総時間")
-                                .font(.system(size: 10))
-                                .foregroundColor(.secondary)
-                            Text("\(workDuration)分")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.primary)
-                        }
+                        StatisticItem(
+                            title: "総時間",
+                            value: "\(workDuration)分",
+                            icon: "clock"
+                        )
                         
-                        VStack(alignment: .trailing, spacing: 2) {
-                            Text("集中時間")
-                                .font(.system(size: 10))
-                                .foregroundColor(.secondary)
-                            Text("\(focusSessionData.totalFocusTime)分")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.primary)
-                        }
+                        StatisticItem(
+                            title: "集中時間",
+                            value: "\(focusSessionData.totalFocusTime)分",
+                            icon: "target"
+                        )
                     }
                     
                     Button(
                         action: {
-                            withAnimation {
+                            withAnimation(.easeInOut(duration: 0.3)) {
                                 isExpanded.toggle()
                             }
                         },
                         label: {
-                            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                                .foregroundStyle(Color.gray)
-                                .frame(width: 24, height: 24)
+                            Image(systemName: "chevron.down.circle.fill")
+                                .font(.title2)
+                                .foregroundStyle(Color.white.opacity(0.8))
+                                .background(
+                                    Circle()
+                                        .fill(Color(white: 0.25).opacity(0.8))
+                                        .frame(width: 32, height: 32)
+                                )
+                                .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                                .animation(.easeInOut(duration: 0.3), value: isExpanded)
                         }
                     )
                 }
-                .padding(16)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    withAnimation {
+                    withAnimation(.easeInOut(duration: 0.3)) {
                         isExpanded.toggle()
                     }
                 }
 
                 if isExpanded {
-                    LineGraphModule(
-                        graphDataPoints: focusSessionData.scores.enumerated().map { index, score in
-                            return .init(
-                                time: Double(index),
-                                value: score,
-                                attiude: .init()
-                            )
-                        },
-                        isAnimationEnabled: true
-                    )
-                    .padding(.horizontal, 8)
-                    .padding(.bottom, 8)
+                    VStack(spacing: 8) {
+                        Divider()
+                            .background(.white.opacity(0.2))
+                            .padding(.horizontal)
+                        
+                        LineGraphModule(
+                            graphDataPoints: focusSessionData.scores.enumerated().map { index, score in
+                                return .init(
+                                    time: Double(index),
+                                    value: score,
+                                    attiude: .init()
+                                )
+                            },
+                            isAnimationEnabled: true
+                        )
+                        .padding(.horizontal, 8)
+                        .padding(.bottom, 8)
+                    }
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .move(edge: .top)),
+                        removal: .opacity.combined(with: .move(edge: .top))
+                    ))
                 }
             }
         }
@@ -326,6 +412,76 @@ extension DailySection {
         
         private var workDuration: Int {
             Int(focusSessionData.endDate.timeIntervalSince(focusSessionData.startDate) / 60)
+        }
+    }
+}
+
+// MARK: - サブビューコンポーネント
+
+struct GraphSectionCard<Content: View>: View {
+    let title: String
+    let icon: String
+    let content: Content
+    
+    init(title: String, icon: String, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.icon = icon
+        self.content = content()
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundColor(.white.opacity(0.8))
+                
+                Text(title)
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.white, .white.opacity(0.8)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                
+                Spacer()
+            }
+            
+            content
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 25)
+                .fill(Color(white: 0.15).opacity(0.9))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 25)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(0.5), radius: 15, x: 0, y: 8)
+        )
+    }
+}
+
+struct StatisticItem: View {
+    let title: String
+    let value: String
+    let icon: String
+    
+    var body: some View {
+        VStack(alignment: .center, spacing: 2) {
+            Image(systemName: icon)
+                .font(.caption2)
+                .foregroundColor(.white.opacity(0.7))
+            
+            Text(title)
+                .font(.system(size: 9, weight: .medium, design: .rounded))
+                .foregroundColor(.white.opacity(0.7))
+            
+            Text(value)
+                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
         }
     }
 }
