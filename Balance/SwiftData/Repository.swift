@@ -33,8 +33,18 @@ public final class FocusSessionData: Codable, Identifiable, Sendable {
         set { scoresJSON = String(data: try! JSONEncoder().encode(newValue), encoding: .utf8)! }
     }
 
+    // Total Focus Time in `minutes`
     var totalFocusTime: Int { // computed property
-        3
+        let diff = endDate.timeIntervalSince(startDate)
+        if diff >= 60 && !diff.isNaN && diff.isFinite {
+            let diffMinutes: Double = diff/60
+            let thresholedScores = scores.map { $0 > threshold }.map { $0 ? 1 : 0 }
+            let ratio = Double(thresholedScores.reduce(0, +)) / Double(thresholedScores.count)
+            let totalFocusTimeDouble = diffMinutes * ratio
+            return Int(totalFocusTimeDouble)
+        } else {
+            return 0
+        }
     }
 
     // MARK: Codable Conformance
