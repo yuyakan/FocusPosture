@@ -272,7 +272,9 @@ extension DailySection {
                     
                     Button(
                         action: {
-                            isExpanded.toggle()
+                            withAnimation {
+                                isExpanded.toggle()
+                            }
                         },
                         label: {
                             Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
@@ -284,7 +286,9 @@ extension DailySection {
                 .padding(16)
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    isExpanded.toggle()
+                    withAnimation {
+                        isExpanded.toggle()
+                    }
                 }
 
                 if isExpanded {
