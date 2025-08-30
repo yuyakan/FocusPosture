@@ -423,6 +423,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Balance/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Flow;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "動き";
 				INFOPLIST_KEY_NSMotionUsageDescription = "センサーを利用します";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -453,6 +454,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Balance/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Flow;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "動き";
 				INFOPLIST_KEY_NSMotionUsageDescription = "センサーを利用します";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
