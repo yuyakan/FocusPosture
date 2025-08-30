@@ -189,6 +189,7 @@ struct MeasurementView: View {
                         },
                         onComplete: {
                             dismiss()
+                            measuremetViewController.resetToInitialValues()
                         }
                     )
                     .padding(.horizontal, 20)
@@ -224,7 +225,6 @@ struct MeasurementView: View {
         self.totalFocusMinutes = data.totalFocusTime
         Task {
             try? await FocusSessionDataRepository.shared.save(data)
-            measuremetViewController.resetToInitialValues()
         }
     }
 }
