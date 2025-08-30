@@ -19,77 +19,69 @@ struct HomeView: View {
     @State private var totalFocusTime: Int = 0 // in Minutes
     var body: some View {
         NavigationView{
-            ZStack{
-                VStack{
-                    if totalFocusTime > 0 {
-                        Text("今日の​集中​時間： \(totalFocusTime) 分")
-                            .font(.title)
-                            .padding(.top, 100)
-                    }
-
-                    //　首振るやつ
-                    EmojiRotationView(
-                        measurementManager: measuremetViewController,
-                        emoji: selectedEmoji
-                    )
-                    .padding(.top, 100)
-                    
-                    // リセットボタン
-                    if measuremetViewController.isStartingMeasure {
-                        Button(action: {
-                            measuremetViewController.resetOrientation()
-                        }) {
-                            HStack {
-                                Image(systemName: "arrow.counterclockwise")
-                                Text("姿勢をリセット")
-                            }
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
-                            .background(Color.orange)
-                            .cornerRadius(20)
-                        }
-                        .padding(.top, 20)
-                    }
-                    
-                    Spacer()
-                    
-                    // 計測画面遷移ボタン
-                    Button(action: {
-                        audioManager.playAudio(.start)
-                        showMeasurementView = true
-                    }) {
-                        Text("計測開始")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(width: 200, height: 60)
-                            .background(Color.blue)
-                            .cornerRadius(30)
-                    }
-                    .padding(.bottom, 50)
+            VStack{
+                if totalFocusTime > 0 {
+                    Text("今日の​集中​時間： \(totalFocusTime) 分")
+                        .font(.title)
+                        .padding(.top, 40)
                 }
-                
-                // グラフボタンを右上に配置
-                VStack{
-                    HStack{
-                        Spacer()
-                        NavigationLink(destination: GraphView(repository: FocusSessionDataRepository.shared)) {
-                            Image(systemName: "chart.line.uptrend.xyaxis")
-                                .font(.system(size: 24))
-                                .foregroundColor(.white)
-                                .frame(width: 50, height: 50)
-                                .background(Color.blue)
-                                .clipShape(Circle())
+
+                //　首振るやつ
+                EmojiRotationView(
+                    measurementManager: measuremetViewController,
+                    emoji: selectedEmoji
+                )
+                .padding(.top, 100)
+
+                // リセットボタン
+                if measuremetViewController.isStartingMeasure {
+                    Button(action: {
+                        measuremetViewController.resetOrientation()
+                    }) {
+                        HStack {
+                            Image(systemName: "arrow.counterclockwise")
+                            Text("姿勢をリセット")
                         }
-                        .padding(.trailing, 20)
-                        .padding(.top, 20)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(Color.orange)
+                        .cornerRadius(20)
                     }
-                    Spacer()
+                    .padding(.top, 20)
+                }
+
+                Spacer()
+
+                // 計測画面遷移ボタン
+                Button(action: {
+                    audioManager.playAudio(.start)
+                    showMeasurementView = true
+                }) {
+                    Text("計測開始")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(width: 200, height: 60)
+                        .background(Color.blue)
+                        .cornerRadius(30)
+                }
+                .padding(.bottom, 50)
+            }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink(destination: GraphView(repository: FocusSessionDataRepository.shared)) {
+                        Image(systemName: "chart.line.uptrend.xyaxis")
+                            .font(.system(size: 24))
+                            .foregroundColor(.white)
+                            .frame(width: 50, height: 50)
+                            .background(Color.blue)
+                            .clipShape(Circle())
+                            .padding(.top, 4)
+                            .padding(.trailing, 4)
+                    }
                 }
             }
-        }
-        .task {
         }
         .navigationViewStyle(StackNavigationViewStyle())
         .fullScreenCover(isPresented: $showMeasurementView) {
