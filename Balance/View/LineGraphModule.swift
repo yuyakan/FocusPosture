@@ -34,6 +34,7 @@ struct LineGraphModule: View {
             )
             .lineStyle(StrokeStyle(lineWidth: 2.5))
         }
+        .chartXScale(domain: 0...max(0, graphDataPoints.count - 1))
         .chartXAxis {
             AxisMarks { _ in
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
