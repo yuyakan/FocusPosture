@@ -24,27 +24,6 @@ class SensorMeasurementManager: UIViewController, CMHeadphoneMotionManagerDelega
     var scores: [FocusData] = []
     var nowTime: Double = 0.0
     var startedTime: Date?
-    var scoreUpdateTime = 0.0
-    var trueOrFalseList: [Bool] = []
-
-    func resetToInitialValues() {
-        // @Published プロパティのリセット
-        isStartingMeasure = false
-        graphDataPoints = []
-        displayScore = 100
-        rollOffset = 0.0
-        pitchOffset = 0.0
-        yawOffset = 0.0
-        
-        // その他のプロパティのリセット
-        totalGraphDataPoints = []
-        elapsedTime = []
-        scores = []
-        nowTime = 0.0
-        startedTime = nil
-        scoreUpdateTime = 0.0
-        trueOrFalseList = []
-    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -128,6 +107,8 @@ class SensorMeasurementManager: UIViewController, CMHeadphoneMotionManagerDelega
         }
     }
 
+    var scoreUpdateTime = 0.0
+    var trueOrFalseList: [Bool] = []
     private func caluculateDisplayScore() {
         let recentScores = scores.suffix(100)
         let sum = recentScores.reduce(into: 0.0) { $0 += $1.score }
