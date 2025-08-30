@@ -14,83 +14,103 @@ struct HomeView: View {
     @State private var showMeasurementView = false
     @State private var selectedEmoji = "😎"
     @StateObject private var audioManager = AudioManager()
-    
 
     @State private var totalFocusTime: Int = 0 // in Minutes
     var body: some View {
-            NavigationView{
-                ZStack {
-                    Color("SplashColor").ignoresSafeArea()
+        NavigationView {
+            ZStack {
+                // Gradient background for depth
+                LinearGradient(gradient: Gradient(colors: [Color("SplashColor"), Color.blue.opacity(0.6)]), startPoint: .topLeading, endPoint: .bottomTrailing)
+                    .ignoresSafeArea()
 
-                    VStack{
-                        if totalFocusTime > 0 {
-                            Text("今日の​集中​時間： \(totalFocusTime) 分")
-                                .font(.title)
+                VStack(spacing: 32) {
+                    // Focus time card
+                    if totalFocusTime > 0 {
+                        VStack {
+                            Text("今日の​集中​時間")
+                                .font(.system(size: 20, weight: .semibold))
                                 .foregroundColor(.white)
-                                .padding(.top, 40)
-                        }
-
-                        //　首振るやつ
-                        EmojiRotationView(
-                            measurementManager: measuremetViewController,
-                            emoji: selectedEmoji
-                        )
-                        .padding(.top, 100)
-
-                        // リセットボタン
-                        if measuremetViewController.isStartingMeasure {
-                            Button(action: {
-                                measuremetViewController.resetOrientation()
-                            }) {
-                                HStack {
-                                    Image(systemName: "arrow.counterclockwise")
-                                    Text("姿勢をリセット")
-                                }
-                                .font(.system(size: 16, weight: .medium))
+                            Text("\(totalFocusTime) 分")
+                                .font(.system(size: 36, weight: .bold))
                                 .foregroundColor(.white)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 10)
-                                .background(Color.orange)
-                                .cornerRadius(20)
-                            }
-                            .padding(.top, 20)
                         }
-
-                        Spacer()
-
-                        // 計測画面遷移ボタン
-                        Button(action: {
-                            audioManager.playAudio(.start)
-                            showMeasurementView = true
-                        }) {
-                            Text("計測開始")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(width: 200, height: 60)
-                                .background(.ultraThinMaterial)
-//                                .background(Color.blue)
-                                .cornerRadius(30)
-                        }
-                        .padding(.bottom, 50)
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(24)
+                        .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 4)
+                        .padding(.top, 40)
                     }
-                }
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        NavigationLink(destination: GraphView(repository: FocusSessionDataRepository.shared)) {
-                            Image(systemName: "chart.line.uptrend.xyaxis")
-                                .font(.system(size: 24))
-                                .foregroundColor(.white)
-                                .frame(width: 50, height: 50)
-                                .background(.ultraThinMaterial)
-//                                .background(Color.blue)
-                                .clipShape(Circle())
-                                .padding(.top, 4)
-                                .padding(.trailing, 4)
+
+                    // Emoji with shadow
+                    EmojiRotationView(
+                        measurementManager: measuremetViewController,
+                        emoji: selectedEmoji
+                    )
+                    .shadow(color: Color.black.opacity(0.18), radius: 12, x: 0, y: 6)
+                    .padding(.top, 40)
+
+                    // Reset button
+                    if measuremetViewController.isStartingMeasure {
+                        Button(action: {
+                            measuremetViewController.resetOrientation()
+                        }) {
+                            HStack {
+                                Image(systemName: "arrow.counterclockwise")
+                                Text("姿勢をリセット")
+                            }
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 12)
+                            .background(
+                                LinearGradient(gradient: Gradient(colors: [Color.orange, Color.yellow]), startPoint: .leading, endPoint: .trailing)
+                            )
+                            .cornerRadius(20)
+                            .shadow(color: Color.orange.opacity(0.25), radius: 8, x: 0, y: 4)
                         }
+                        .padding(.top, 8)
+                    }
+
+                    Spacer()
+
+                    // Measurement start button
+                    Button(action: {
+                        audioManager.playAudio(.start)
+                        showMeasurementView = true
+                    }) {
+                        Text("計測開始")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 220, height: 64)
+                            .background(
+                                LinearGradient(gradient: Gradient(colors: [Color.blue, Color.purple]), startPoint: .topLeading, endPoint: .bottomTrailing)
+                            )
+                            .cornerRadius(32)
+                            .shadow(color: Color.purple.opacity(0.18), radius: 10, x: 0, y: 6)
+                    }
+                    .padding(.bottom, 40)
+                }
+                .padding(.horizontal, 24)
+            }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink(destination: GraphView(repository: FocusSessionDataRepository.shared)) {
+                        Image(systemName: "chart.line.uptrend.xyaxis")
+                            .font(.system(size: 24))
+                            .foregroundColor(.white)
+                            .frame(width: 50, height: 50)
+                            .background(
+                                LinearGradient(gradient: Gradient(colors: [Color.purple, Color.blue]), startPoint: .top, endPoint: .bottom)
+                            )
+                            .clipShape(Circle())
+                            .shadow(color: Color.purple.opacity(0.18), radius: 8, x: 0, y: 4)
+                            .padding(.top, 4)
+                            .padding(.trailing, 4)
                     }
                 }
             }
-            .navigationViewStyle(StackNavigationViewStyle())
+        }
+        .navigationViewStyle(StackNavigationViewStyle())
         .fullScreenCover(isPresented: $showMeasurementView) {
             MeasurementView(measuremetViewController: measuremetViewController)
         }
@@ -101,15 +121,11 @@ struct HomeView: View {
             }
         }
         .onAppear {
-            // AirPodsのデータ取得を開始
-            // デリゲートを手動で設定（UIViewControllerのviewDidLoadが呼ばれないため）
             measuremetViewController.airpods.delegate = measuremetViewController
             measuremetViewController.startCalc()
-
             setTotalFocusTimeInToday()
         }
         .onDisappear {
-            // AirPodsのデータ取得を停止
             measuremetViewController.stopCalc()
         }
     }
