@@ -17,6 +17,7 @@ struct MeasurementLineGraphModule: View {
                 x: .value("Time", index), // indexを使用して相対的な位置を指定
                 y: .value("Value", graphDataPoints[index].value)
             )
+            .interpolationMethod(.catmullRom)
             .foregroundStyle(.blue)
             .lineStyle(StrokeStyle(lineWidth: 2))
         }
