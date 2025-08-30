@@ -6,6 +6,7 @@ struct GraphView: View {
     private let repository: FocusSessionDataRepositoryProtocol
     @State
     private var weeklyFocusSessionDatas: [FocusSessionData] = []
+    @Environment(\.dismiss) private var dismiss
 
     init(
         repository: FocusSessionDataRepositoryProtocol
@@ -49,7 +50,7 @@ struct GraphView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button(action: {
-                    // 戻る処理
+                    dismiss()
                 }) {
                     Image(systemName: "chevron.left")
                         .foregroundColor(.primary)
