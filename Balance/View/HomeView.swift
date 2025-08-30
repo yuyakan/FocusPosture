@@ -54,6 +54,11 @@ struct HomeView: View {
                 }
             }
         }
+        .task {
+            // Save/Getの例
+            //try? await FocusSessionDataRepository.shared.save(.init())
+            //let result = try? await FocusSessionDataRepository.shared.get(with: Date.now)
+        }
         .navigationViewStyle(StackNavigationViewStyle())
         .fullScreenCover(isPresented: $showMeasurementView) {
             MeasurementView(measuremetViewController: measuremetViewController)
