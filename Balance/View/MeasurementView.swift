@@ -9,7 +9,7 @@ import SwiftUI
 import CoreMotion
 import Charts
 
-enum FocusState {
+enum FocusState: Equatable {
     case state100 // Very High
     case state80
     case state60
@@ -99,6 +99,8 @@ struct MeasurementView: View {
     @State private var totalFocusMinutes: Int = 0
     @State private var animationOffset: CGFloat = 0
     @State private var pulseAnimation: Bool = false
+    @StateObject private var audioManager = AudioManager()
+    @State private var previousFocusState: FocusState?
 
     var body: some View {
         ZStack {
@@ -150,6 +152,13 @@ struct MeasurementView: View {
                                             .stroke(.white.opacity(0.2), lineWidth: 1)
                                     )
                             )
+                Spacer()
+                if isMeasuring {
+                    EmojiRotationView(measurementManager: self.measuremetViewController, emoji: FocusState(displayedFocusScore: measuremetViewController.displayScore).icon)
+                } else {
+                    LottieView(name: "Trophy", loopMode: .playOnce)
+                }
+                Spacer()
 
                         // 集中スコア表示
                         ScoreDisplayCard(score: measuremetViewController.displayScore, pulseAnimation: pulseAnimation)
@@ -168,6 +177,34 @@ struct MeasurementView: View {
                         if !measuremetViewController.graphDataPoints.isEmpty {
                             GraphDisplayCard(graphDataPoints: measuremetViewController.graphDataPoints)
                         }
+                // ボタン部分
+                if isMeasuring {
+                    // 計測中は終了ボタンのみ
+                    Button(action: {
+                        measuremetViewController.stopCalc()
+                        saveToDB()
+                        isMeasuring = false
+                        audioManager.playAudio(.finish)
+                    }) {
+                        Text("終了")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(width: 200, height: 60)
+                            .background(Color.red)
+                            .cornerRadius(30)
+                    }
+                    .padding(.bottom, 50)
+                } else {
+                    // 結果画面では完了ボタン
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Text("完了")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(width: 200, height: 60)
+                            .background(Color.blue)
+                            .cornerRadius(30)
                     }
                     .padding(.horizontal, 20)
 
@@ -197,6 +234,16 @@ struct MeasurementView: View {
             }
             withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
                 pulseAnimation = true
+            }
+            .onChange(of: measuremetViewController.displayScore) { _, newScore in
+                let currentFocusState = FocusState(displayedFocusScore: newScore)
+                
+                // FocusStateがstate20になったタイミングでalert音を再生
+                if currentFocusState == .state20 && previousFocusState != .state20 {
+                    audioManager.playAudio(.alert)
+                }
+                
+                previousFocusState = currentFocusState
             }
         }
     }
