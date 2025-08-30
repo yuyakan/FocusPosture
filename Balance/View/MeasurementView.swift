@@ -113,91 +113,105 @@ struct MeasurementView: View {
             ParticleSystem(intensity: min(measuremetViewController.displayScore / 100.0, 1.0))
                 .ignoresSafeArea()
             
-            ScrollView {
-                VStack(spacing: 30) {
-                    // ヘッダー部分
-                    VStack(spacing: 15) {
-                        HStack {
-                            Spacer()
-                            StatusIndicator(isMeasuring: isMeasuring)
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 10)
-                        
-                        Text(isMeasuring ? "計測中" : "結果")
-                            .font(.system(size: 36, weight: .bold, design: .rounded))
+            VStack(spacing: 0) {
+                // ヘッダー部分
+                HStack {
+                    Spacer()
+                    StatusIndicator(isMeasuring: isMeasuring)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 15)
+                
+                Spacer(minLength: 10)
+                
+                // メインコンテンツ
+                VStack(spacing: 20) {
+                    // 説明文
+                    Text(focusState.explanation)
+                        .font(.system(size: 22, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white.opacity(0.9))
+                        .padding(.horizontal, 25)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(.ultraThinMaterial)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 15)
+                                        .stroke(.white.opacity(0.2), lineWidth: 1)
+                                )
+                        )
+                    
+                    // 集中スコア表示
+                    VStack(spacing: 8) {
+                        Text("スコア")
+                            .font(.system(size: 16, weight: .medium, design: .rounded))
+                            .foregroundColor(.white.opacity(0.7))
+                        Text(String(Int(measuremetViewController.displayScore)))
+                            .font(.system(size: 42, weight: .bold, design: .rounded))
                             .foregroundStyle(
                                 LinearGradient(
-                                    colors: [.white, .white.opacity(0.8)],
+                                    colors: [.white, .white.opacity(0.7)],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
                             )
-                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 2)
+                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
                     }
-                    
-                    // メインコンテンツカード
-                    VStack(spacing: 25) {
-                        // 説明文
-                        Text(focusState.explanation)
-                            .font(.system(size: 24, weight: .semibold, design: .rounded))
-                            .foregroundColor(.white.opacity(0.9))
-                            .padding(.horizontal, 30)
-                            .padding(.vertical, 15)
-                            .background(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .fill(.ultraThinMaterial)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .stroke(.white.opacity(0.2), lineWidth: 1)
-                                    )
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 15)
+                    .background(
+                        RoundedRectangle(cornerRadius: 18)
+                            .fill(.ultraThinMaterial)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 18)
+                                    .stroke(.white.opacity(0.2), lineWidth: 1)
                             )
-                        
-                        // 集中スコア表示
-                        ScoreDisplayCard(score: measuremetViewController.displayScore, pulseAnimation: pulseAnimation)
-                        
-                        // 集中時間表示
-                        if !isMeasuring && totalFocusMinutes > 0 {
-                            TimeDisplayCard(minutes: totalFocusMinutes)
-                        }
-                        
-                        if isMeasuring {
-                            // 絵文字アニメーション
-                            EmojiRotationView(measurementManager: measuremetViewController, emoji: focusState.icon)
-                                .scaleEffect(pulseAnimation ? 1.1 : 1.0)
-                                .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: pulseAnimation)
-                                .frame(height: 200)
-                        } else {
-                            LottieView(name: "Trophy", loopMode: .playOnce)
-                                .frame(height: 200)
-                        }
-                        
-                        // グラフ表示
-                        if !measuremetViewController.graphDataPoints.isEmpty {
-                            GraphDisplayCard(graphDataPoints: measuremetViewController.graphDataPoints)
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    
-                    Spacer(minLength: 30)
-                    
-                    // アクションボタン
-                    ActionButton(
-                        isMeasuring: isMeasuring,
-                        onStop: {
-                            audioManager.playAudio(.finish)
-                            measuremetViewController.stopCalc()
-                            saveToDB()
-                            isMeasuring = false
-                        },
-                        onComplete: {
-                            dismiss()
-                            measuremetViewController.resetToInitialValues()
-                        }
                     )
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 30)
+                    
+                    // 集中時間表示（結果画面のみ）
+                    if !isMeasuring && totalFocusMinutes > 0 {
+                        TimeDisplayCard(minutes: totalFocusMinutes)
+                            .scaleEffect(0.9)
+                    }
+                    
+                    // 中央のビジュアル要素
+                    if isMeasuring {
+                        // 絵文字アニメーション
+                        EmojiRotationView(measurementManager: measuremetViewController, emoji: focusState.icon)
+                            .scaleEffect(pulseAnimation ? 1.0 : 0.9)
+                            .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: pulseAnimation)
+                            .frame(height: 200)
+                    } else {
+                        LottieView(name: "Trophy", loopMode: .playOnce)
+                            .frame(height: 200)
+                    }
+                    
+                    // グラフ表示
+                    if !measuremetViewController.graphDataPoints.isEmpty {
+                        GraphDisplayCard(graphDataPoints: measuremetViewController.graphDataPoints)
+                            .frame(maxHeight: 180)
+                    }
                 }
+                .padding(.horizontal, 20)
+                
+                Spacer(minLength: 10)
+                
+                // アクションボタン
+                ActionButton(
+                    isMeasuring: isMeasuring,
+                    onStop: {
+                        audioManager.playAudio(.finish)
+                        measuremetViewController.stopCalc()
+                        saveToDB()
+                        isMeasuring = false
+                    },
+                    onComplete: {
+                        dismiss()
+                        measuremetViewController.resetToInitialValues()
+                    }
+                )
+                .padding(.horizontal, 30)
+                .padding(.bottom, 25)
             }
         }
         .onAppear {
@@ -331,7 +345,7 @@ struct ScoreDisplayCard: View {
     let pulseAnimation: Bool
     
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 8) {
             HStack {
                 Image(systemName: "brain.head.profile")
                     .font(.title2)
@@ -341,8 +355,8 @@ struct ScoreDisplayCard: View {
                     .foregroundColor(.white.opacity(0.8))
             }
             
-            Text(String(format: "%.1f", score))
-                .font(.system(size: 48, weight: .bold, design: .rounded))
+            Text(String(Int(score)))
+                .font(.system(size: 44, weight: .bold, design: .rounded))
                 .foregroundStyle(
                     LinearGradient(
                         colors: [.white, .white.opacity(0.7)],
@@ -350,18 +364,18 @@ struct ScoreDisplayCard: View {
                         endPoint: .bottomTrailing
                     )
                 )
-                .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
+                .shadow(color: .black.opacity(0.3), radius: 3, x: 0, y: 1)
         }
         .padding(.horizontal, 30)
-        .padding(.vertical, 25)
+        .padding(.vertical, 20)
         .background(
-            RoundedRectangle(cornerRadius: 25)
+            RoundedRectangle(cornerRadius: 20)
                 .fill(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 25)
+                    RoundedRectangle(cornerRadius: 20)
                         .stroke(.white.opacity(0.2), lineWidth: 1)
                 )
-                .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
         )
         .scaleEffect(pulseAnimation ? 1.02 : 1.0)
     }
@@ -371,8 +385,8 @@ struct TimeDisplayCard: View {
     let minutes: Int
     
     var body: some View {
-        VStack(spacing: 8) {
-            HStack {
+        HStack(spacing: 20) {
+            HStack(spacing: 8) {
                 Image(systemName: "clock.fill")
                     .font(.title3)
                     .foregroundColor(.white.opacity(0.8))
@@ -382,17 +396,18 @@ struct TimeDisplayCard: View {
             }
             
             Text("\(minutes) 分")
-                .font(.system(size: 32, weight: .bold, design: .rounded))
+                .font(.system(size: 28, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
-                .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
         }
         .padding(.horizontal, 25)
-        .padding(.vertical, 20)
+        .padding(.vertical, 15)
+        .frame(maxWidth: .infinity)
         .background(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: 18)
                 .fill(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: 18)
                         .stroke(.white.opacity(0.2), lineWidth: 1)
                 )
         )
@@ -403,26 +418,26 @@ struct GraphDisplayCard: View {
     let graphDataPoints: [GraphDataPoint]
     
     var body: some View {
-        VStack(spacing: 15) {
+        VStack(spacing: 12) {
             HStack {
                 Image(systemName: "chart.line.uptrend.xyaxis")
-                    .font(.title3)
+                    .font(.body)
                     .foregroundColor(.white.opacity(0.8))
                 Text("集中度の推移")
-                    .font(.system(size: 16, weight: .medium, design: .rounded))
+                    .font(.system(size: 15, weight: .medium, design: .rounded))
                     .foregroundColor(.white.opacity(0.8))
                 Spacer()
             }
             
             MeasurementLineGraphModule(graphDataPoints: graphDataPoints)
-                .frame(height: 200)
+                .frame(height: 140)
         }
-        .padding(20)
+        .padding(18)
         .background(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: 18)
                 .fill(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: 18)
                         .stroke(.white.opacity(0.2), lineWidth: 1)
                 )
         )
@@ -443,19 +458,19 @@ struct ActionButton: View {
                 onComplete()
             }
         }) {
-            HStack(spacing: 15) {
+            HStack(spacing: 12) {
                 Image(systemName: isMeasuring ? "stop.fill" : "checkmark.circle.fill")
                     .font(.title2)
                     .foregroundColor(.white)
                 
                 Text(isMeasuring ? "終了" : "完了")
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .font(.system(size: 19, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 60)
+            .frame(height: 54)
             .background(
-                RoundedRectangle(cornerRadius: 30)
+                RoundedRectangle(cornerRadius: 27)
                     .fill(
                         LinearGradient(
                             colors: isMeasuring ? [.red, .red.opacity(0.8)] : [.blue, .blue.opacity(0.8)],
@@ -464,10 +479,10 @@ struct ActionButton: View {
                         )
                     )
                     .overlay(
-                        RoundedRectangle(cornerRadius: 30)
+                        RoundedRectangle(cornerRadius: 27)
                             .stroke(.white.opacity(0.2), lineWidth: 1)
                     )
-                    .shadow(color: isMeasuring ? .red.opacity(0.3) : .blue.opacity(0.3), radius: 15, x: 0, y: 8)
+                    .shadow(color: isMeasuring ? .red.opacity(0.3) : .blue.opacity(0.3), radius: 12, x: 0, y: 6)
             )
             .scaleEffect(isPressed ? 0.95 : 1.0)
         }

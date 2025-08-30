@@ -21,6 +21,7 @@ struct MeasurementLineGraphModule: View {
             .lineStyle(StrokeStyle(lineWidth: 2))
         }
         .chartXScale(domain: 0...max(0, graphDataPoints.count - 1)) // X軸の範囲を固定
+        .chartYScale(domain: 0...3) // X軸の範囲を固定
         .chartXAxis(.hidden) // X軸を非表示
         .chartYAxis(.hidden) // Y軸を非表示
         .frame(width: 337, height: 121)
