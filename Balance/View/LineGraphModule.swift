@@ -25,32 +25,34 @@ struct LineGraphModule: View {
                 x: .value("Time", point.time),
                 y: .value("Value", point.value)
             )
-            .foregroundStyle(.blue)
-            .lineStyle(StrokeStyle(lineWidth: 2))
+            .foregroundStyle(
+                LinearGradient(
+                    colors: [Color.cyan, Color.blue, Color.purple.opacity(0.8)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            .lineStyle(StrokeStyle(lineWidth: 2.5))
         }
         .chartXAxis {
             AxisMarks { _ in
-                AxisGridLine()
-                    .foregroundStyle(Color.gray.opacity(0.2))
-                AxisTick()
-                    .foregroundStyle(Color.gray.opacity(0.4))
+                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                    .foregroundStyle(Color.white.opacity(0.15))
+                AxisTick(stroke: StrokeStyle(lineWidth: 1))
+                    .foregroundStyle(Color.white.opacity(0.3))
             }
         }
         .chartYAxis {
             AxisMarks(position: .leading) { _ in
-                AxisGridLine()
-                    .foregroundStyle(Color.gray.opacity(0.2))
-                AxisTick()
-                    .foregroundStyle(Color.gray.opacity(0.4))
-                AxisValueLabel()
-                    .font(.system(size: 10))
-                    .foregroundStyle(Color.secondary)
+                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                    .foregroundStyle(Color.white.opacity(0.15))
+                AxisTick(stroke: StrokeStyle(lineWidth: 1))
+                    .foregroundStyle(Color.white.opacity(0.3))
             }
         }
         .chartPlotStyle { plotArea in
             plotArea
-                .background(Color(UIColor.systemBackground))
-                .border(Color.gray.opacity(0.3), width: 1)
+                .background(Color.clear)
         }
         .frame(height: 150)
         .onAppear {
