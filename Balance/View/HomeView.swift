@@ -13,6 +13,7 @@ struct HomeView: View {
     @StateObject var measuremetViewController = SensorMeasurementManager()
     @State private var showMeasurementView = false
     @State private var selectedEmoji = "😎"
+    @StateObject private var audioManager = AudioManager()
     
     var body: some View {
         NavigationView{
@@ -48,6 +49,7 @@ struct HomeView: View {
                     
                     // 計測画面遷移ボタン
                     Button(action: {
+                        audioManager.playAudio(.start)
                         showMeasurementView = true
                     }) {
                         Text("計測開始")

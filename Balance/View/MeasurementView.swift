@@ -9,7 +9,7 @@ import SwiftUI
 import CoreMotion
 import Charts
 
-enum FocusState {
+enum FocusState: Equatable {
     case state100 // Very High
     case state80
     case state60
@@ -82,6 +82,8 @@ struct MeasurementView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var totalFocusMinutes: Int = 0
+    @StateObject private var audioManager = AudioManager()
+    @State private var previousFocusState: FocusState?
 
     var body: some View {
         ZStack {
@@ -135,6 +137,7 @@ struct MeasurementView: View {
                         measuremetViewController.stopCalc()
                         saveToDB()
                         isMeasuring = false
+                        audioManager.playAudio(.finish)
                     }) {
                         Text("終了")
                             .font(.headline)
@@ -161,6 +164,16 @@ struct MeasurementView: View {
             }
             .onAppear {
                 measuremetViewController.startCalc()
+            }
+            .onChange(of: measuremetViewController.displayScore) { _, newScore in
+                let currentFocusState = FocusState(displayedFocusScore: newScore)
+                
+                // FocusStateがstate20になったタイミングでalert音を再生
+                if currentFocusState == .state20 && previousFocusState != .state20 {
+                    audioManager.playAudio(.alert)
+                }
+                
+                previousFocusState = currentFocusState
             }
         }
     }
