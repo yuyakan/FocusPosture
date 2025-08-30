@@ -68,7 +68,7 @@ struct EmojiRotationView: View {
                     .opacity(0.5)
                 Text("AirPodsを接続してください")
                     .font(.caption)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.white)
             }
         }
     }
