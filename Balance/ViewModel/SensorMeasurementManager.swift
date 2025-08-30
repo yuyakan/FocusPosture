@@ -16,6 +16,7 @@ class SensorMeasurementManager: UIViewController, CMHeadphoneMotionManagerDelega
     var elapsedTime : [Double] = []
     var scores: [FocusData] = []
     var nowTime: Double = 0.0
+    var startedTime: Date?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -30,11 +31,13 @@ class SensorMeasurementManager: UIViewController, CMHeadphoneMotionManagerDelega
     //start
     func startCalc(){
         resetMeasureStatus()
+        startedTime = .now
         isStartingMeasure = true
         startGettingData()
     }
     
     private func resetMeasureStatus() {
+        startedTime = nil
         scores = []
         totalGraphDataPoints = [] // グラフデータもリセット
         nowTime = 0.0
