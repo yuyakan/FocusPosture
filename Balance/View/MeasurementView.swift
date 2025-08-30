@@ -9,6 +9,73 @@ import SwiftUI
 import CoreMotion
 import Charts
 
+enum FocusState {
+    case state100 // Very High
+    case state80
+    case state60
+    case state40
+    case state20 // Very Low
+
+    var explanation: String {
+        switch self {
+            case .state100:
+                "その調子"
+            case .state80:
+                "いい感じ"
+            case .state60:
+                "まあまあ"
+            case .state40:
+                "ちょっと休憩"
+            case .state20:
+                "⚠️"
+        }
+    }
+
+    var icon: String {
+        switch self {
+            case .state100:
+                return "😎"
+            case .state80:
+                return "😏"
+            case .state60:
+                return "🧐"
+            case .state40:
+                return "🤨"
+            case .state20:
+                return "😪"
+        }
+    }
+
+    var backgroundColor: Color {
+        switch self {
+            case .state100:
+                return Color.blue.opacity(0.8)
+            case .state80:
+                return Color.green.opacity(0.8)
+            case .state60:
+                return Color.yellow.opacity(0.8)
+            case .state40:
+                return Color.orange.opacity(0.8)
+            case .state20:
+                return Color.red.opacity(0.8)
+        }
+    }
+
+    init(displayedFocusScore: Double) {
+        if displayedFocusScore < 20 {
+            self = .state20
+        } else if displayedFocusScore < 40 {
+            self = .state40
+        } else if displayedFocusScore < 60 {
+            self = .state60
+        } else if displayedFocusScore < 80 {
+            self = .state80
+        } else {
+            self = .state100
+        }
+    }
+}
+
 struct MeasurementView: View {
     @ObservedObject var measuremetViewController: SensorMeasurementManager
     @State private var isMeasuring = true
@@ -17,66 +84,80 @@ struct MeasurementView: View {
     @State private var totalFocusMinutes: Int = 0
 
     var body: some View {
-        VStack{
-            // タイトル表示
-            Text(isMeasuring ? "計測中" : "結果")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .padding(.top, 50)
-
-            Text("集中スコア：" + String(format: "%.1f", measuremetViewController.displayScore))
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .padding(.top, 50)
-            if !isMeasuring , totalFocusMinutes > 0 {
-                Text("集中時間：\(totalFocusMinutes) 分")
+        ZStack {
+            let color = FocusState(displayedFocusScore: measuremetViewController.displayScore).backgroundColor
+            LinearGradient(gradient: Gradient(colors: [color, color.mix(with: .white, by: 0.5), color]), startPoint: .topLeading, endPoint: .bottomTrailing)
+                .ignoresSafeArea(.all)
+            
+            VStack {
+                // タイトル表示
+                Text(isMeasuring ? "計測中" : "結果")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .padding(.top, 50)
-            }
 
-            Spacer()
-            
-            // グラフ表示部分
-            if !measuremetViewController.graphDataPoints.isEmpty {
-                LineGraphModule(graphDataPoints: measuremetViewController.graphDataPoints)
-            }
-            
-            Spacer()
-            
-            // ボタン部分
-            if isMeasuring {
-                // 計測中は終了ボタンのみ
-                Button(action: {
-                    measuremetViewController.stopCalc()
-                    saveToDB()
-                    isMeasuring = false
-                }) {
-                    Text("終了")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(width: 200, height: 60)
-                        .background(Color.red)
-                        .cornerRadius(30)
+                // 説明文　← スペース足りないならなくてもいい
+                Text(FocusState(displayedFocusScore: measuremetViewController.displayScore).explanation)
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .padding(.top, 20)
+
+                Text("集中スコア：" + String(format: "%.1f", measuremetViewController.displayScore))
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .padding(.top, 20)
+                if !isMeasuring , totalFocusMinutes > 0 {
+                    Text("集中時間：\(totalFocusMinutes) 分")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .padding(.top, 20)
                 }
-                .padding(.bottom, 50)
-            } else {
-                // 結果画面では完了ボタン
-                Button(action: {
-                    dismiss()
-                }) {
-                    Text("完了")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(width: 200, height: 60)
-                        .background(Color.blue)
-                        .cornerRadius(30)
+
+                Spacer()
+                EmojiRotationView(measurementManager: self.measuremetViewController, emoji: FocusState(displayedFocusScore: measuremetViewController.displayScore).icon)
+                Spacer()
+
+                // グラフ表示部分
+                if !measuremetViewController.graphDataPoints.isEmpty {
+                    LineGraphModule(graphDataPoints: measuremetViewController.graphDataPoints)
                 }
-                .padding(.bottom, 50)
+
+                Spacer()
+
+                // ボタン部分
+                if isMeasuring {
+                    // 計測中は終了ボタンのみ
+                    Button(action: {
+                        measuremetViewController.stopCalc()
+                        saveToDB()
+                        isMeasuring = false
+                    }) {
+                        Text("終了")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(width: 200, height: 60)
+                            .background(Color.red)
+                            .cornerRadius(30)
+                    }
+                    .padding(.bottom, 50)
+                } else {
+                    // 結果画面では完了ボタン
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Text("完了")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(width: 200, height: 60)
+                            .background(Color.blue)
+                            .cornerRadius(30)
+                    }
+                    .padding(.bottom, 50)
+                }
             }
-        }
-        .onAppear {
-            measuremetViewController.startCalc()
+            .onAppear {
+                measuremetViewController.startCalc()
+            }
         }
     }
 
