@@ -61,6 +61,13 @@ public final class FocusSessionData: Codable, Identifiable, Sendable {
         scoresJSON =  String(data: try! JSONEncoder().encode([1.0, 2.0]), encoding: .utf8)!
     }
 
+    public init(startDate: Date, endDate: Date, scores:[Double]) {
+        self.id = UUID()
+        self.startDate = Date.now
+        self.endDate = Date.now
+        scoresJSON =  String(data: try! JSONEncoder().encode(scores), encoding: .utf8)!
+    }
+
     // Init for Testing purpose
     public init() {
         self.id = UUID()
@@ -92,6 +99,7 @@ class FocusSessionDataRepository: FocusSessionDataRepositoryProtocol {
             let dataInDB = try? await self.get(with: .now)
             if dataInDB?.count == 0 {
                 let dummyData = self.getDummyData()
+                print("# insert Dummy Data into DB: \(dummyData.count) items")
                 for data in dummyData {
                     try? await self.save(data)
                 }
