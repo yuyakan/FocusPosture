@@ -14,11 +14,16 @@ class SensorMeasurementManager: UIViewController, CMHeadphoneMotionManagerDelega
     @Published var isStartingMeasure = false
     @Published var graphDataPoints: [GraphDataPoint] = [] // グラフ用データ
     @Published var displayScore: Double = 100
+    @Published var rollOffset: Double = 0.0  // リセット用オフセット
+    @Published var pitchOffset: Double = 0.0 // リセット用オフセット
+    @Published var yawOffset: Double = 0.0   // リセット用オフセット
+
     var totalGraphDataPoints: [GraphDataPoint] = []
     let airpods = CMHeadphoneMotionManager()
     var elapsedTime : [Double] = []
     var scores: [FocusData] = []
     var nowTime: Double = 0.0
+    var startedTime: Date?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -33,11 +38,13 @@ class SensorMeasurementManager: UIViewController, CMHeadphoneMotionManagerDelega
     //start
     func startCalc(){
         resetMeasureStatus()
+        startedTime = .now
         isStartingMeasure = true
         startGettingData()
     }
     
     private func resetMeasureStatus() {
+        startedTime = nil
         scores = []
         totalGraphDataPoints = [] // グラフデータもリセット
         nowTime = 0.0
@@ -128,5 +135,15 @@ class SensorMeasurementManager: UIViewController, CMHeadphoneMotionManagerDelega
             self.graphDataPoints = self.totalGraphDataPoints
         }
         isStartingMeasure = false
+    }
+    
+    // 姿勢をリセット（現在の角度を基準にする）
+    func resetOrientation() {
+        guard let lastPoint = graphDataPoints.last else {
+            return
+        }
+        rollOffset = lastPoint.attiude.roll
+        pitchOffset = lastPoint.attiude.pitch
+        yawOffset = lastPoint.attiude.yaw
     }
 }

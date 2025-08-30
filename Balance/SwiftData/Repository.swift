@@ -34,7 +34,7 @@ public final class FocusSessionData: Codable, Identifiable, Sendable {
     }
 
     var totalFocusTime: Int { // computed property
-        0
+        3
     }
 
     // MARK: Codable Conformance
@@ -59,6 +59,13 @@ public final class FocusSessionData: Codable, Identifiable, Sendable {
         startDate = try container.decode(Date.self, forKey: .startDate)
         endDate = try container.decode(Date.self, forKey: .endDate)
         scoresJSON =  String(data: try! JSONEncoder().encode([1.0, 2.0]), encoding: .utf8)!
+    }
+
+    public init(startDate: Date, endDate: Date, scores:[Double]) {
+        self.id = UUID()
+        self.startDate = Date.now
+        self.endDate = Date.now
+        scoresJSON =  String(data: try! JSONEncoder().encode(scores), encoding: .utf8)!
     }
 
     // Init for Testing purpose
@@ -87,9 +94,16 @@ class FocusSessionDataRepository: FocusSessionDataRepositoryProtocol {
         self.modelContainer = try! ModelContainer(for: schema, configurations: [modelConfiguration])
 
 
-        // Insert Dummy あとで消す <- Write for Demo if eneded
         Task {
-            //await insertDummyDataForDemo()
+            // DBが空の場合、ダミーデータを追加
+            let dataInDB = try? await self.get(with: .now)
+            if dataInDB?.count == 0 {
+                let dummyData = self.getDummyData()
+                print("# insert Dummy Data into DB: \(dummyData.count) items")
+                for data in dummyData {
+                    try? await self.save(data)
+                }
+            }
         }
     }
 

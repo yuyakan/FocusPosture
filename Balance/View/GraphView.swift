@@ -1,10 +1,12 @@
 import SwiftUI
+import CoreMotion
 import Charts
 
 struct GraphView: View {
     private let repository: FocusSessionDataRepositoryProtocol
     @State
     private var weeklyFocusSessionDatas: [FocusSessionData] = []
+    @Environment(\.dismiss) private var dismiss
 
     init(
         repository: FocusSessionDataRepositoryProtocol
@@ -14,15 +16,44 @@ struct GraphView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
-                WeeklyBarChart(dailyTotals: dailyFocusTotals)
-                    .frame(height: 200)
-                    .padding(.horizontal, 16)
-                ForEach(groupedByDay, id: \.key) { dateKey, sessions in
-                    DailySection(focusSessionDatas: sessions)
-                        .background(Color.gray.opacity(0.05))
-                        .cornerRadius(8)
+            VStack(alignment: .leading, spacing: 24) {
+                // 週間グラフセクション
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("週間の集中時間")
+                        .font(.headline)
+                        .foregroundColor(.primary)
                         .padding(.horizontal, 16)
+                    
+                    WeeklyBarChart(dailyTotals: dailyFocusTotals)
+                        .frame(height: 200)
+                        .padding(.horizontal, 16)
+                }
+                
+                // 日別記録セクション
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("日別の記録")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                        .padding(.horizontal, 16)
+                    
+                    ForEach(groupedByDay, id: \.key) { dateKey, sessions in
+                        DailySection(focusSessionDatas: sessions)
+                            .padding(.horizontal, 16)
+                    }
+                }
+            }
+            .padding(.vertical, 16)
+        }
+        .navigationTitle("記録")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: {
+                    dismiss()
+                }) {
+                    Image(systemName: "chevron.left")
+                        .foregroundColor(.primary)
                 }
             }
         }
@@ -66,22 +97,33 @@ struct GraphView: View {
     }
 }
 
-struct DailyFocusData: Identifiable {
+struct DailyFocusData: Identifiable, Equatable {
     let id = UUID()
     let date: Date
     let totalMinutes: Int
+    
+    init(date: Date, totalMinutes: Int) {
+        self.date = date
+        self.totalMinutes = totalMinutes
+    }
+    
+    static func == (lhs: DailyFocusData, rhs: DailyFocusData) -> Bool {
+        return lhs.date == rhs.date && lhs.totalMinutes == rhs.totalMinutes
+    }
 }
 
 struct WeeklyBarChart: View {
     let dailyTotals: [DailyFocusData]
+    @State private var animatedData: [DailyFocusData] = []
     
     var body: some View {
-        Chart(dailyTotals) { data in
+        Chart(animatedData) { data in
             BarMark(
                 x: .value("Date", data.date, unit: .day),
                 y: .value("Minutes", data.totalMinutes)
             )
             .foregroundStyle(Color.blue.gradient)
+            .opacity(data.totalMinutes > 0 ? 1 : 0)
         }
         .chartXAxis {
             AxisMarks(values: .stride(by: .day)) { _ in
@@ -103,6 +145,29 @@ struct WeeklyBarChart: View {
                 .background(Color.gray.opacity(0.05))
                 .cornerRadius(8)
         }
+        .onAppear {
+            animateBarChart()
+        }
+        .onChange(of: dailyTotals) { _, _ in
+            animatedData = []
+            animateBarChart()
+        }
+    }
+    
+    private func animateBarChart() {
+        // 最初にすべてのデータを0でセット
+        animatedData = dailyTotals.map { data in
+            DailyFocusData(date: data.date, totalMinutes: 0)
+        }
+        
+        // 順番にアニメーション表示
+        for (index, data) in dailyTotals.enumerated() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.2) {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    animatedData[index] = data
+                }
+            }
+        }
     }
 }
 
@@ -114,16 +179,33 @@ private struct DailySection: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(dateHeaderText)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.primary)
-                .padding(.horizontal, 12)
-                .padding(.top, 8)
-
+        VStack(spacing: 8) {
             ForEach(Array(focusSessionDatas.enumerated()), id: \.element.id) { index, data in
                 RecordCell(focusSessionData: data, recordNumber: index + 1)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color(UIColor.tertiarySystemBackground))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 0)
+                            .stroke(Color.gray.opacity(0.1), lineWidth: 0.5)
+                    )
             }
+        }
+        .padding(.top, 30)
+        .padding(.bottom, 16)
+        .padding(.horizontal, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(UIColor.secondarySystemBackground))
+        )
+        .overlay(alignment: .topLeading) {
+            Text(dateHeaderText)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.white)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(RoundedRectangle(cornerRadius: 8).fill(Color.blue))
         }
     }
     
@@ -151,17 +233,43 @@ extension DailySection {
         }
 
         var body: some View {
-            VStack {
+            VStack(spacing: 0) {
                 HStack {
-                    Text(formattedRecordText)
-                        .font(.system(size: 14))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .onTapGesture {
-                            isExpanded.toggle()
+                    Text(formattedTimeRange)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.primary)
+                    
+                    Spacer()
+                    
+                    HStack(spacing: 12) {
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text("スコア")
+                                .font(.system(size: 10))
+                                .foregroundColor(.secondary)
+                            Text("\(averageScore)")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.primary)
                         }
-
+                        
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text("総時間")
+                                .font(.system(size: 10))
+                                .foregroundColor(.secondary)
+                            Text("\(workDuration)分")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.primary)
+                        }
+                        
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text("集中時間")
+                                .font(.system(size: 10))
+                                .foregroundColor(.secondary)
+                            Text("\(focusSessionData.totalFocusTime)分")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.primary)
+                        }
+                    }
+                    
                     Button(
                         action: {
                             isExpanded.toggle()
@@ -169,30 +277,49 @@ extension DailySection {
                         label: {
                             Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                                 .foregroundStyle(Color.gray)
-                                .frame(width: 32, height: 32)
+                                .frame(width: 24, height: 24)
                         }
                     )
                 }
+                .padding(16)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    isExpanded.toggle()
+                }
 
                 if isExpanded {
-                    // FIXME: グラフ
-                    EmptyView()
+                    LineGraphModule(
+                        graphDataPoints: focusSessionData.scores.enumerated().map { index, score in
+                            return .init(
+                                time: Double(index),
+                                value: score,
+                                attiude: .init()
+                            )
+                    })
+                    .padding(.horizontal, 8)
+                    .padding(.bottom, 8)
                 }
             }
         }
         
-        private var formattedRecordText: String {
+        private var formattedTimeRange: String {
             let formatter = DateFormatter()
-            formatter.dateFormat = "ha"
+            formatter.dateFormat = "HH:mm"
             formatter.locale = Locale(identifier: "en_US_POSIX")
             
             let startTime = formatter.string(from: focusSessionData.startDate)
             let endTime = formatter.string(from: focusSessionData.endDate)
             
-            let averageScore = focusSessionData.scores.isEmpty ? 0 : 
+            return "\(startTime) - \(endTime)"
+        }
+        
+        private var averageScore: Int {
+            focusSessionData.scores.isEmpty ? 0 : 
                 Int(focusSessionData.scores.reduce(0, +) / Double(focusSessionData.scores.count))
-            
-            return "\(startTime)~\(endTime) Score: \(averageScore)"
+        }
+        
+        private var workDuration: Int {
+            Int(focusSessionData.endDate.timeIntervalSince(focusSessionData.startDate) / 60)
         }
     }
 }

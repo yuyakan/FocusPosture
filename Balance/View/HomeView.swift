@@ -10,14 +10,39 @@ import CoreMotion
 import Charts
 
 struct HomeView: View {
-    @ObservedObject var measuremetViewController = SensorMeasurementManager()
+    @StateObject var measuremetViewController = SensorMeasurementManager()
     @State private var showMeasurementView = false
+    @State private var selectedEmoji = "😎"
     
     var body: some View {
         NavigationView{
             ZStack{
                 VStack{
                     //　首振るやつ
+                    EmojiRotationView(
+                        measurementManager: measuremetViewController,
+                        emoji: selectedEmoji
+                    )
+                    .padding(.top, 100)
+                    
+                    // リセットボタン
+                    if measuremetViewController.isStartingMeasure {
+                        Button(action: {
+                            measuremetViewController.resetOrientation()
+                        }) {
+                            HStack {
+                                Image(systemName: "arrow.counterclockwise")
+                                Text("姿勢をリセット")
+                            }
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .background(Color.orange)
+                            .cornerRadius(20)
+                        }
+                        .padding(.top, 20)
+                    }
                     
                     Spacer()
                     
@@ -55,13 +80,20 @@ struct HomeView: View {
             }
         }
         .task {
-            // Save/Getの例
-            //try? await FocusSessionDataRepository.shared.save(.init())
-            //let result = try? await FocusSessionDataRepository.shared.get(with: Date.now)
         }
         .navigationViewStyle(StackNavigationViewStyle())
         .fullScreenCover(isPresented: $showMeasurementView) {
             MeasurementView(measuremetViewController: measuremetViewController)
+        }
+        .onAppear {
+            // AirPodsのデータ取得を開始
+            // デリゲートを手動で設定（UIViewControllerのviewDidLoadが呼ばれないため）
+            measuremetViewController.airpods.delegate = measuremetViewController
+            measuremetViewController.startCalc()
+        }
+        .onDisappear {
+            // AirPodsのデータ取得を停止
+            measuremetViewController.stopCalc()
         }
     }
 }

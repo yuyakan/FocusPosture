@@ -41,6 +41,7 @@ struct MeasurementView: View {
                 // 計測中は終了ボタンのみ
                 Button(action: {
                     measuremetViewController.stopCalc()
+                    saveToDB()
                     isMeasuring = false
                 }) {
                     Text("終了")
@@ -68,6 +69,16 @@ struct MeasurementView: View {
         }
         .onAppear {
             measuremetViewController.startCalc()
+        }
+    }
+
+    func saveToDB() {
+        Task {
+            let scores = measuremetViewController.scores.map { $0.score }
+            let startedTime = measuremetViewController.startedTime ?? .now
+            print("# startedTime \(startedTime) now \(Date.now)")
+            let data: FocusSessionData = .init(startDate: startedTime, endDate: .now, scores: scores)
+            try? await FocusSessionDataRepository.shared.save(data)
         }
     }
 }
