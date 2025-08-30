@@ -27,7 +27,11 @@ public final class FocusSessionData: Codable, Identifiable, Sendable {
     public var startDate: Date //計測を開始した時間
     public var endDate: Date//計測を終了した時間
 
-    public var scores: [Double] //1秒ごとの 首振りの動き)
+    var scoresJSON: String //
+    var scores: [Double] {//1秒ごとの 首振りの動き)
+        get { (try? JSONDecoder().decode([Double].self, from: Data(scoresJSON.utf8))) ?? [] }
+        set { scoresJSON = String(data: try! JSONEncoder().encode(newValue), encoding: .utf8)! }
+    }
 
     var totalFocusTime: Int { // computed property
         0
@@ -54,7 +58,7 @@ public final class FocusSessionData: Codable, Identifiable, Sendable {
         id = try container.decode(UUID.self, forKey: .id)
         startDate = try container.decode(Date.self, forKey: .startDate)
         endDate = try container.decode(Date.self, forKey: .endDate)
-        scores = try container.decode([Double].self, forKey: .scores)
+        scoresJSON =  String(data: try! JSONEncoder().encode([1.0, 2.0]), encoding: .utf8)!
     }
 
     // Init for Testing purpose
@@ -62,7 +66,7 @@ public final class FocusSessionData: Codable, Identifiable, Sendable {
         self.id = UUID()
         self.startDate = Date.now
         self.endDate = Date.now
-        self.scores = [1.0, 2.0, 3.0]
+        scoresJSON =  String(data: try! JSONEncoder().encode([1.0, 2.0]), encoding: .utf8)!
     }
 }
 
@@ -100,7 +104,7 @@ class FocusSessionDataRepository: FocusSessionDataRepositoryProtocol {
         let endOfDay = calendar.date(byAdding: .day, value: 1, to: beginOfDay)!
 
         let predicate = #Predicate<FocusSessionData> { data in
-            return data.startDate >= beginOfDay && data.startDate < endOfDay
+            data.startDate >= beginOfDay && data.startDate < endOfDay
         }
 
         let descriptor = FetchDescriptor(predicate: predicate)

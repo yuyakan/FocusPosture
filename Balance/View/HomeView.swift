@@ -21,11 +21,9 @@ struct HomeView: View {
             }
         }
         .task {
-            try? await FocusSessionDataRepository.shared.save(.init())
-            try? await FocusSessionDataRepository.shared.save(.init())
-            try? await FocusSessionDataRepository.shared.save(.init())
-            try? await FocusSessionDataRepository.shared.save(.init())
-            let result = try? await FocusSessionDataRepository.shared.get(with: Date.now)
+            // Save/Getの例
+            //try? await FocusSessionDataRepository.shared.save(.init())
+            //let result = try? await FocusSessionDataRepository.shared.get(with: Date.now)
         }
         .navigationViewStyle(StackNavigationViewStyle())
         //　グラフ画面に遷移
