@@ -89,7 +89,13 @@ class FocusSessionDataRepository: FocusSessionDataRepositoryProtocol {
 
         // Insert Dummy あとで消す <- Write for Demo if eneded
         Task {
-            //await insertDummyDataForDemo()
+            let dataInDB = try? await self.get(with: .now)
+            if dataInDB?.count == 0 {
+                let dummyData = self.getDummyData()
+                for data in dummyData {
+                    try? await self.save(data)
+                }
+            }
         }
     }
 

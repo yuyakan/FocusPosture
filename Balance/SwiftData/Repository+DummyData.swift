@@ -1,12 +1,11 @@
 import Foundation
 
-final class FakeFocusSessionDataRepository: FocusSessionDataRepositoryProtocol {
-    
-    func get(with date: Date) async throws -> [FocusSessionData] {
-        // 直近7日間に分散したセッションデータを作成
+extension FocusSessionDataRepository {
+    func getDummyData() -> [FocusSessionData] {
         let calendar = Calendar.current
         var allSessions: [FocusSessionData] = []
-        
+        let date = Date()
+
         // 今日（day 0）
         allSessions.append(createFocusSession(
             id: UUID(),
@@ -120,11 +119,6 @@ final class FakeFocusSessionDataRepository: FocusSessionDataRepositoryProtocol {
         return allSessions
     }
     
-    func save(_ data: FocusSessionData) async throws {
-        // Fakeリポジトリなので保存処理は何もしない
-        print("FakeFocusSessionDataRepository: Saving data with id: \(data.id)")
-    }
-    
     // MARK: - Private Methods
     
     private enum ScorePattern {
@@ -139,7 +133,7 @@ final class FakeFocusSessionDataRepository: FocusSessionDataRepositoryProtocol {
         durationMinutes: Int,
         pattern: ScorePattern
     ) -> FocusSessionData {
-        let session = try! FocusSessionData(from: DummyDecoder())
+        let session = try! FocusSessionData()
         session.id = id
         session.startDate = baseDate
         session.endDate = baseDate.addingTimeInterval(TimeInterval(durationMinutes * 60))
@@ -180,23 +174,5 @@ final class FakeFocusSessionDataRepository: FocusSessionDataRepositoryProtocol {
         }
         
         return scores
-    }
-    
-    // Decoderのダミー実装
-    private struct DummyDecoder: Decoder {
-        var codingPath: [CodingKey] = []
-        var userInfo: [CodingUserInfoKey: Any] = [:]
-        
-        func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
-            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: [], debugDescription: "Dummy decoder"))
-        }
-        
-        func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: [], debugDescription: "Dummy decoder"))
-        }
-        
-        func singleValueContainer() throws -> SingleValueDecodingContainer {
-            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: [], debugDescription: "Dummy decoder"))
-        }
     }
 }

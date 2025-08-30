@@ -57,7 +57,14 @@ struct HomeView: View {
         .task {
             // Save/Getの例
             //try? await FocusSessionDataRepository.shared.save(.init())
-            //let result = try? await FocusSessionDataRepository.shared.get(with: Date.now)
+//            let result = try? await FocusSessionDataRepository.shared.get(with: Date.now)
+//            print("# result \(result?.count)")
+//
+//            let result2 = try? await FocusSessionDataRepository.shared.get(with: Date.now.addingTimeInterval(-86400))
+//            print("# result \(result2?.count)")
+//
+//            let result3 = try? await FocusSessionDataRepository.shared.get(with: Date.now.addingTimeInterval(-86400*2))
+//            print("# result \(result3?.count)")
         }
         .navigationViewStyle(StackNavigationViewStyle())
         .fullScreenCover(isPresented: $showMeasurementView) {
