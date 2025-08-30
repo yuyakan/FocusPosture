@@ -21,6 +21,11 @@ struct MeasurementView: View {
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .padding(.top, 50)
+    
+            Text("集中スコア：" + String(format: "%.1f", measuremetViewController.displayScore))
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .padding(.top, 50)
             
             Spacer()
             
