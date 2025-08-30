@@ -11,6 +11,7 @@ import SwiftUI
 class SensorMeasurementManager: UIViewController, CMHeadphoneMotionManagerDelegate, ObservableObject{
     @Published var isStartingMeasure = false
     @Published var graphDataPoints: [GraphDataPoint] = [] // グラフ用データ
+    var totalGraphDataPoints: [GraphDataPoint] = []
     let airpods = CMHeadphoneMotionManager()
     var elapsedTime : [Double] = []
     var scores: [FocusData] = []
@@ -35,7 +36,7 @@ class SensorMeasurementManager: UIViewController, CMHeadphoneMotionManagerDelega
     
     private func resetMeasureStatus() {
         scores = []
-        graphDataPoints = [] // グラフデータもリセット
+        totalGraphDataPoints = [] // グラフデータもリセット
         nowTime = 0.0
         elapsedTime.removeAll()
     }
@@ -84,12 +85,11 @@ class SensorMeasurementManager: UIViewController, CMHeadphoneMotionManagerDelega
         let dataPoint = GraphDataPoint(time: currentElapsedTime, value: combinedValue, attiude: data.attitude)
         
         DispatchQueue.main.async {
-            self.graphDataPoints.append(dataPoint)
+            self.totalGraphDataPoints.append(dataPoint)
             
-            // パフォーマンスのため、表示するデータポイント数を制限（例：最新の100ポイント）
-            if self.graphDataPoints.count > 100 {
-                self.graphDataPoints.removeFirst()
-            }
+            // 最近10秒間のデータポイントのみを保持
+            let tenSecondsAgo = currentElapsedTime - 10.0
+            self.graphDataPoints = self.totalGraphDataPoints.filter { $0.time >= tenSecondsAgo }
         }
     }
     
@@ -104,6 +104,9 @@ class SensorMeasurementManager: UIViewController, CMHeadphoneMotionManagerDelega
     func stopCalc(){
         //計測の停止
         airpods.stopDeviceMotionUpdates()
+        DispatchQueue.main.async {
+            self.graphDataPoints = self.totalGraphDataPoints
+        }
         isStartingMeasure = false
     }
 }
