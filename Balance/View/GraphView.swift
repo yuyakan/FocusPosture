@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreMotion
 import Charts
 
 struct GraphView: View {
@@ -14,15 +15,44 @@ struct GraphView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
-                WeeklyBarChart(dailyTotals: dailyFocusTotals)
-                    .frame(height: 200)
-                    .padding(.horizontal, 16)
-                ForEach(groupedByDay, id: \.key) { dateKey, sessions in
-                    DailySection(focusSessionDatas: sessions)
-                        .background(Color.gray.opacity(0.05))
-                        .cornerRadius(8)
+            VStack(alignment: .leading, spacing: 24) {
+                // 週間グラフセクション
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("週間の集中時間")
+                        .font(.headline)
+                        .foregroundColor(.primary)
                         .padding(.horizontal, 16)
+                    
+                    WeeklyBarChart(dailyTotals: dailyFocusTotals)
+                        .frame(height: 200)
+                        .padding(.horizontal, 16)
+                }
+                
+                // 日別記録セクション
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("日別の記録")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                        .padding(.horizontal, 16)
+                    
+                    ForEach(groupedByDay, id: \.key) { dateKey, sessions in
+                        DailySection(focusSessionDatas: sessions)
+                            .padding(.horizontal, 16)
+                    }
+                }
+            }
+            .padding(.vertical, 16)
+        }
+        .navigationTitle("記録")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: {
+                    // 戻る処理
+                }) {
+                    Image(systemName: "chevron.left")
+                        .foregroundColor(.primary)
                 }
             }
         }
@@ -114,16 +144,34 @@ private struct DailySection: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(dateHeaderText)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.primary)
-                .padding(.horizontal, 12)
-                .padding(.top, 8)
-
+        VStack(spacing: 8) {
+            // レコードリスト
             ForEach(Array(focusSessionDatas.enumerated()), id: \.element.id) { index, data in
                 RecordCell(focusSessionData: data, recordNumber: index + 1)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color(UIColor.tertiarySystemBackground))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 0)
+                            .stroke(Color.gray.opacity(0.1), lineWidth: 0.5)
+                    )
             }
+        }
+        .padding(.top, 30)
+        .padding(.bottom, 16)
+        .padding(.horizontal, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(UIColor.secondarySystemBackground))
+        )
+        .overlay(alignment: .topLeading) {
+            Text(dateHeaderText)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.white)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(RoundedRectangle(cornerRadius: 8).fill(Color.blue))
         }
     }
     
@@ -151,17 +199,34 @@ extension DailySection {
         }
 
         var body: some View {
-            VStack {
+            VStack(spacing: 0) {
                 HStack {
-                    Text(formattedRecordText)
-                        .font(.system(size: 14))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .onTapGesture {
-                            isExpanded.toggle()
+                    Text(formattedTimeRange)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.primary)
+                    
+                    Spacer()
+                    
+                    HStack(spacing: 16) {
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text("スコア")
+                                .font(.system(size: 10))
+                                .foregroundColor(.secondary)
+                            Text("\(averageScore)")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.primary)
                         }
-
+                        
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text("集中時間")
+                                .font(.system(size: 10))
+                                .foregroundColor(.secondary)
+                            Text("\(focusSessionData.totalFocusTime)分")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.primary)
+                        }
+                    }
+                    
                     Button(
                         action: {
                             isExpanded.toggle()
@@ -169,30 +234,45 @@ extension DailySection {
                         label: {
                             Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                                 .foregroundStyle(Color.gray)
-                                .frame(width: 32, height: 32)
+                                .frame(width: 24, height: 24)
                         }
                     )
                 }
+                .padding(16)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    isExpanded.toggle()
+                }
 
                 if isExpanded {
-                    // FIXME: グラフ
-                    EmptyView()
+                    LineGraphModule(
+                        graphDataPoints: focusSessionData.scores.enumerated().map { index, score in
+                            return .init(
+                                time: Double(index),
+                                value: score,
+                                attiude: .init()
+                            )
+                    })
+                    .padding(.horizontal, 8)
+                    .padding(.bottom, 8)
                 }
             }
         }
         
-        private var formattedRecordText: String {
+        private var formattedTimeRange: String {
             let formatter = DateFormatter()
-            formatter.dateFormat = "ha"
+            formatter.dateFormat = "HH:mm"
             formatter.locale = Locale(identifier: "en_US_POSIX")
             
             let startTime = formatter.string(from: focusSessionData.startDate)
             let endTime = formatter.string(from: focusSessionData.endDate)
             
-            let averageScore = focusSessionData.scores.isEmpty ? 0 : 
+            return "\(startTime) - \(endTime)"
+        }
+        
+        private var averageScore: Int {
+            focusSessionData.scores.isEmpty ? 0 : 
                 Int(focusSessionData.scores.reduce(0, +) / Double(focusSessionData.scores.count))
-            
-            return "\(startTime)~\(endTime) Score: \(averageScore)"
         }
     }
 }
