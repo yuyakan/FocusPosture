@@ -166,8 +166,10 @@ struct MeasurementView: View {
                             EmojiRotationView(measurementManager: measuremetViewController, emoji: focusState.icon)
                                 .scaleEffect(pulseAnimation ? 1.1 : 1.0)
                                 .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: pulseAnimation)
+                                .frame(height: 200)
                         } else {
                             LottieView(name: "Trophy", loopMode: .playOnce)
+                                .frame(height: 200)
                         }
                         
                         // グラフ表示
@@ -183,6 +185,7 @@ struct MeasurementView: View {
                     ActionButton(
                         isMeasuring: isMeasuring,
                         onStop: {
+                            audioManager.playAudio(.finish)
                             measuremetViewController.stopCalc()
                             saveToDB()
                             isMeasuring = false
