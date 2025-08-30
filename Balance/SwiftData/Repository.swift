@@ -38,7 +38,7 @@ public final class FocusSessionData: Codable, Identifiable, Sendable {
         let diff = endDate.timeIntervalSince(startDate)
         if diff >= 60 && !diff.isNaN && diff.isFinite {
             let diffMinutes: Double = Double(diff)/60.0
-            let thresholedScores = scores.map { $0 > threshold }.map { $0 ? 1 : 0 }
+            let thresholedScores = scores.map { $0 < threshold }.map { $0 ? 1 : 0 }
             let ratio = Double(thresholedScores.reduce(0, +)) / Double(thresholedScores.count)
             let totalFocusTimeDouble = diffMinutes * ratio
             return Int(totalFocusTimeDouble)
