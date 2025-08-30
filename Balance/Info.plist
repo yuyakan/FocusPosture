@@ -6,9 +6,12 @@
 	<array>
 		<dict/>
 	</array>
-	<key>NSMotionUsageDescription</key>
-	<string>センサーを利用します</string>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>動き</string>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>SplashColor</string>
+		<key>UIImageName</key>
+		<string>Splash</string>
+	</dict>
 </dict>
 </plist>
