@@ -97,8 +97,7 @@ class SensorMeasurementManager: UIViewController, CMHeadphoneMotionManagerDelega
     
     private func calculateFocusData(data: CMDeviceMotion) {
         let accelValue = abs(data.userAcceleration.x) + abs(data.userAcceleration.y) + abs(data.userAcceleration.z)
-        let rotateValue = abs(data.rotationRate.x) + abs(data.rotationRate.y) + abs(data.rotationRate.z)
-        // TODO: スコアのロジックを検討
+        let rotateValue = abs(data.rotationRate.x) + abs(data.rotationRate.y)
         let score = accelValue + rotateValue
         let focusData = FocusData(score: score, attitude: data.attitude)
         scores.append(focusData)
