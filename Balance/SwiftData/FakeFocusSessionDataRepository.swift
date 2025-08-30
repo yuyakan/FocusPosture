@@ -3,34 +3,121 @@ import Foundation
 final class FakeFocusSessionDataRepository: FocusSessionDataRepositoryProtocol {
     
     func get(with date: Date) async throws -> [FocusSessionData] {
-        // 3つの異なるパターンのセッションデータを作成
+        // 直近7日間に分散したセッションデータを作成
         let calendar = Calendar.current
+        var allSessions: [FocusSessionData] = []
         
-        // セッション1: 短時間（20要素）- 朝の短い集中セッション
-        let session1 = createFocusSession(
+        // 今日（day 0）
+        allSessions.append(createFocusSession(
             id: UUID(),
             baseDate: calendar.date(bySettingHour: 9, minute: 0, second: 0, of: date)!,
-            durationMinutes: 20,
+            durationMinutes: 25,
             pattern: .improving
-        )
-        
-        // セッション2: 中時間（50要素）- 昼の標準的なセッション
-        let session2 = createFocusSession(
+        ))
+        allSessions.append(createFocusSession(
             id: UUID(),
-            baseDate: calendar.date(bySettingHour: 14, minute: 0, second: 0, of: date)!,
-            durationMinutes: 50,
+            baseDate: calendar.date(bySettingHour: 11, minute: 30, second: 0, of: date)!,
+            durationMinutes: 45,
             pattern: .fluctuating
-        )
-        
-        // セッション3: 長時間（100要素）- 夕方の長いセッション
-        let session3 = createFocusSession(
+        ))
+        allSessions.append(createFocusSession(
             id: UUID(),
-            baseDate: calendar.date(bySettingHour: 16, minute: 30, second: 0, of: date)!,
-            durationMinutes: 100,
+            baseDate: calendar.date(bySettingHour: 15, minute: 0, second: 0, of: date)!,
+            durationMinutes: 60,
             pattern: .declining
-        )
+        ))
         
-        return [session1, session2, session3]
+        // 1日前
+        if let dayMinus1 = calendar.date(byAdding: .day, value: -1, to: date) {
+            allSessions.append(createFocusSession(
+                id: UUID(),
+                baseDate: calendar.date(bySettingHour: 10, minute: 0, second: 0, of: dayMinus1)!,
+                durationMinutes: 30,
+                pattern: .improving
+            ))
+            allSessions.append(createFocusSession(
+                id: UUID(),
+                baseDate: calendar.date(bySettingHour: 14, minute: 30, second: 0, of: dayMinus1)!,
+                durationMinutes: 90,
+                pattern: .fluctuating
+            ))
+        }
+        
+        // 2日前
+        if let dayMinus2 = calendar.date(byAdding: .day, value: -2, to: date) {
+            allSessions.append(createFocusSession(
+                id: UUID(),
+                baseDate: calendar.date(bySettingHour: 8, minute: 30, second: 0, of: dayMinus2)!,
+                durationMinutes: 20,
+                pattern: .improving
+            ))
+            allSessions.append(createFocusSession(
+                id: UUID(),
+                baseDate: calendar.date(bySettingHour: 13, minute: 0, second: 0, of: dayMinus2)!,
+                durationMinutes: 55,
+                pattern: .declining
+            ))
+        }
+        
+        // 3日前
+        if let dayMinus3 = calendar.date(byAdding: .day, value: -3, to: date) {
+            allSessions.append(createFocusSession(
+                id: UUID(),
+                baseDate: calendar.date(bySettingHour: 9, minute: 30, second: 0, of: dayMinus3)!,
+                durationMinutes: 40,
+                pattern: .fluctuating
+            ))
+            allSessions.append(createFocusSession(
+                id: UUID(),
+                baseDate: calendar.date(bySettingHour: 16, minute: 0, second: 0, of: dayMinus3)!,
+                durationMinutes: 35,
+                pattern: .improving
+            ))
+        }
+        
+        // 4日前
+        if let dayMinus4 = calendar.date(byAdding: .day, value: -4, to: date) {
+            allSessions.append(createFocusSession(
+                id: UUID(),
+                baseDate: calendar.date(bySettingHour: 10, minute: 30, second: 0, of: dayMinus4)!,
+                durationMinutes: 50,
+                pattern: .declining
+            ))
+            allSessions.append(createFocusSession(
+                id: UUID(),
+                baseDate: calendar.date(bySettingHour: 15, minute: 30, second: 0, of: dayMinus4)!,
+                durationMinutes: 25,
+                pattern: .improving
+            ))
+        }
+        
+        // 5日前
+        if let dayMinus5 = calendar.date(byAdding: .day, value: -5, to: date) {
+            allSessions.append(createFocusSession(
+                id: UUID(),
+                baseDate: calendar.date(bySettingHour: 11, minute: 0, second: 0, of: dayMinus5)!,
+                durationMinutes: 70,
+                pattern: .fluctuating
+            ))
+        }
+        
+        // 6日前
+        if let dayMinus6 = calendar.date(byAdding: .day, value: -6, to: date) {
+            allSessions.append(createFocusSession(
+                id: UUID(),
+                baseDate: calendar.date(bySettingHour: 9, minute: 0, second: 0, of: dayMinus6)!,
+                durationMinutes: 45,
+                pattern: .improving
+            ))
+            allSessions.append(createFocusSession(
+                id: UUID(),
+                baseDate: calendar.date(bySettingHour: 14, minute: 0, second: 0, of: dayMinus6)!,
+                durationMinutes: 30,
+                pattern: .declining
+            ))
+        }
+        
+        return allSessions
     }
     
     func save(_ data: FocusSessionData) async throws {
