@@ -15,10 +15,18 @@ struct HomeView: View {
     @State private var selectedEmoji = "😎"
     @StateObject private var audioManager = AudioManager()
     
+
+    @State private var totalFocusTime: Int = 0 // in Minutes
     var body: some View {
         NavigationView{
             ZStack{
                 VStack{
+                    if totalFocusTime > 0 {
+                        Text("今日の​集中​時間： \(totalFocusTime) 分")
+                            .font(.title)
+                            .padding(.top, 100)
+                    }
+
                     //　首振るやつ
                     EmojiRotationView(
                         measurementManager: measuremetViewController,
@@ -90,6 +98,7 @@ struct HomeView: View {
         .onChange(of: showMeasurementView) { newValue in
             if newValue == false {
                 measuremetViewController.startCalc()
+                setTotalFocusTimeInToday()
             }
         }
         .onAppear {
@@ -97,10 +106,24 @@ struct HomeView: View {
             // デリゲートを手動で設定（UIViewControllerのviewDidLoadが呼ばれないため）
             measuremetViewController.airpods.delegate = measuremetViewController
             measuremetViewController.startCalc()
+
+            setTotalFocusTimeInToday()
         }
         .onDisappear {
             // AirPodsのデータ取得を停止
             measuremetViewController.stopCalc()
+        }
+    }
+
+    func setTotalFocusTimeInToday() {
+        Task { @MainActor in
+            let repository = FocusSessionDataRepository.shared
+            let todaysRecord = try? await repository.get(with: Date.now)
+
+            let totalTime = todaysRecord?.map { $0.totalFocusTime }.reduce(0, +) ?? 0
+            if totalTime > 0 {
+                self.totalFocusTime = totalTime
+            }
         }
     }
 }
