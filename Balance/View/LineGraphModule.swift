@@ -10,8 +10,11 @@ import Charts
 
 struct LineGraphModule: View {
     let graphDataPoints: [GraphDataPoint]
+    @State private var animatedDataPoints: [GraphDataPoint] = []
+    @State private var animationProgress: Double = 0
+    
     var body: some View {
-        Chart(graphDataPoints) { point in
+        Chart(animatedDataPoints) { point in
             LineMark(
                 x: .value("Time", point.time),
                 y: .value("Value", point.value)
@@ -44,5 +47,28 @@ struct LineGraphModule: View {
                 .border(Color.gray.opacity(0.3), width: 1)
         }
         .frame(height: 150)
+        .onAppear {
+            animateLineGraph()
+        }
+        .onChange(of: graphDataPoints) { _, _ in
+            animatedDataPoints = []
+            animationProgress = 0
+            animateLineGraph()
+        }
+    }
+    
+    private func animateLineGraph() {
+        guard !graphDataPoints.isEmpty else { return }
+        
+        let totalDuration = 2.0
+        let stepDuration = totalDuration / Double(graphDataPoints.count)
+        
+        for (index, point) in graphDataPoints.enumerated() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * stepDuration) {
+                withAnimation(.easeInOut(duration: 0.1)) {
+                    animatedDataPoints.append(point)
+                }
+            }
+        }
     }
 }

@@ -97,22 +97,33 @@ struct GraphView: View {
     }
 }
 
-struct DailyFocusData: Identifiable {
+struct DailyFocusData: Identifiable, Equatable {
     let id = UUID()
     let date: Date
     let totalMinutes: Int
+    
+    init(date: Date, totalMinutes: Int) {
+        self.date = date
+        self.totalMinutes = totalMinutes
+    }
+    
+    static func == (lhs: DailyFocusData, rhs: DailyFocusData) -> Bool {
+        return lhs.date == rhs.date && lhs.totalMinutes == rhs.totalMinutes
+    }
 }
 
 struct WeeklyBarChart: View {
     let dailyTotals: [DailyFocusData]
+    @State private var animatedData: [DailyFocusData] = []
     
     var body: some View {
-        Chart(dailyTotals) { data in
+        Chart(animatedData) { data in
             BarMark(
                 x: .value("Date", data.date, unit: .day),
                 y: .value("Minutes", data.totalMinutes)
             )
             .foregroundStyle(Color.blue.gradient)
+            .opacity(data.totalMinutes > 0 ? 1 : 0)
         }
         .chartXAxis {
             AxisMarks(values: .stride(by: .day)) { _ in
@@ -134,6 +145,29 @@ struct WeeklyBarChart: View {
                 .background(Color.gray.opacity(0.05))
                 .cornerRadius(8)
         }
+        .onAppear {
+            animateBarChart()
+        }
+        .onChange(of: dailyTotals) { _, _ in
+            animatedData = []
+            animateBarChart()
+        }
+    }
+    
+    private func animateBarChart() {
+        // 最初にすべてのデータを0でセット
+        animatedData = dailyTotals.map { data in
+            DailyFocusData(date: data.date, totalMinutes: 0)
+        }
+        
+        // 順番にアニメーション表示
+        for (index, data) in dailyTotals.enumerated() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.2) {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    animatedData[index] = data
+                }
+            }
+        }
     }
 }
 
@@ -146,7 +180,6 @@ private struct DailySection: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            // レコードリスト
             ForEach(Array(focusSessionDatas.enumerated()), id: \.element.id) { index, data in
                 RecordCell(focusSessionData: data, recordNumber: index + 1)
                     .background(
@@ -208,12 +241,21 @@ extension DailySection {
                     
                     Spacer()
                     
-                    HStack(spacing: 16) {
+                    HStack(spacing: 12) {
                         VStack(alignment: .trailing, spacing: 2) {
                             Text("スコア")
                                 .font(.system(size: 10))
                                 .foregroundColor(.secondary)
                             Text("\(averageScore)")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.primary)
+                        }
+                        
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text("総時間")
+                                .font(.system(size: 10))
+                                .foregroundColor(.secondary)
+                            Text("\(workDuration)分")
                                 .font(.system(size: 14, weight: .semibold))
                                 .foregroundColor(.primary)
                         }
@@ -274,6 +316,10 @@ extension DailySection {
         private var averageScore: Int {
             focusSessionData.scores.isEmpty ? 0 : 
                 Int(focusSessionData.scores.reduce(0, +) / Double(focusSessionData.scores.count))
+        }
+        
+        private var workDuration: Int {
+            Int(focusSessionData.endDate.timeIntervalSince(focusSessionData.startDate) / 60)
         }
     }
 }
