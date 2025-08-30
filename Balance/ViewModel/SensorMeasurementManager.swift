@@ -99,7 +99,7 @@ class SensorMeasurementManager: UIViewController, CMHeadphoneMotionManagerDelega
         let rotateValue = (abs(data.rotationRate.x) + abs(data.rotationRate.y) + abs(data.rotationRate.z)) * 0.3
         let combinedValue = accelValue + rotateValue
         
-        let dataPoint = GraphDataPoint(time: currentElapsedTime, value: combinedValue)
+        let dataPoint = GraphDataPoint(time: currentElapsedTime, value: combinedValue, attiude: data.attitude)
         
         DispatchQueue.main.async {
             self.graphDataPoints.append(dataPoint)

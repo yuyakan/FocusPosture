@@ -6,9 +6,11 @@
 //
 
 import Foundation
+import CoreMotion
 
 struct GraphDataPoint: Identifiable {
     let id = UUID()
     let time: Double
     let value: Double
+    let attiude: CMAttitude
 }
