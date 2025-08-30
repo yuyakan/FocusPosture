@@ -295,7 +295,9 @@ extension DailySection {
                                 value: score,
                                 attiude: .init()
                             )
-                    })
+                        },
+                        isAnimationEnabled: true
+                    )
                     .padding(.horizontal, 8)
                     .padding(.bottom, 8)
                 }
