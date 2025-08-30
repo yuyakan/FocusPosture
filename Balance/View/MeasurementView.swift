@@ -114,7 +114,11 @@ struct MeasurementView: View {
                 }
 
                 Spacer()
-                EmojiRotationView(measurementManager: self.measuremetViewController, emoji: FocusState(displayedFocusScore: measuremetViewController.displayScore).icon)
+                if isMeasuring {
+                    EmojiRotationView(measurementManager: self.measuremetViewController, emoji: FocusState(displayedFocusScore: measuremetViewController.displayScore).icon)
+                } else {
+                    LottieView(name: "Trophy", loopMode: .playOnce)
+                }
                 Spacer()
 
                 // グラフ表示部分
