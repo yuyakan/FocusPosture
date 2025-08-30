@@ -13,7 +13,9 @@ struct MeasurementView: View {
     @ObservedObject var measuremetViewController: SensorMeasurementManager
     @State private var isMeasuring = true
     @Environment(\.dismiss) private var dismiss
-    
+
+    @State private var totalFocusMinutes: Int = 0
+
     var body: some View {
         VStack{
             // タイトル表示
@@ -21,12 +23,18 @@ struct MeasurementView: View {
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .padding(.top, 50)
-    
+
             Text("集中スコア：" + String(format: "%.1f", measuremetViewController.displayScore))
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .padding(.top, 50)
-            
+            if !isMeasuring , totalFocusMinutes > 0 {
+                Text("集中時間：\(totalFocusMinutes) 分")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .padding(.top, 50)
+            }
+
             Spacer()
             
             // グラフ表示部分
@@ -73,11 +81,11 @@ struct MeasurementView: View {
     }
 
     func saveToDB() {
+        let scores = measuremetViewController.scores.map { $0.score }
+        let startedTime = measuremetViewController.startedTime ?? .now
+        let data: FocusSessionData = .init(startDate: startedTime, endDate: Date.now, scores: scores)
+        self.totalFocusMinutes = data.totalFocusTime
         Task {
-            let scores = measuremetViewController.scores.map { $0.score }
-            let startedTime = measuremetViewController.startedTime ?? .now
-            print("# startedTime \(startedTime) now \(Date.now)")
-            let data: FocusSessionData = .init(startDate: startedTime, endDate: .now, scores: scores)
             try? await FocusSessionDataRepository.shared.save(data)
         }
     }

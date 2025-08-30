@@ -37,7 +37,7 @@ public final class FocusSessionData: Codable, Identifiable, Sendable {
     var totalFocusTime: Int { // computed property
         let diff = endDate.timeIntervalSince(startDate)
         if diff >= 60 && !diff.isNaN && diff.isFinite {
-            let diffMinutes: Double = diff/60
+            let diffMinutes: Double = Double(diff)/60.0
             let thresholedScores = scores.map { $0 > threshold }.map { $0 ? 1 : 0 }
             let ratio = Double(thresholedScores.reduce(0, +)) / Double(thresholedScores.count)
             let totalFocusTimeDouble = diffMinutes * ratio
@@ -73,8 +73,8 @@ public final class FocusSessionData: Codable, Identifiable, Sendable {
 
     public init(startDate: Date, endDate: Date, scores:[Double]) {
         self.id = UUID()
-        self.startDate = Date.now
-        self.endDate = Date.now
+        self.startDate = startDate
+        self.endDate = endDate
         scoresJSON =  String(data: try! JSONEncoder().encode(scores), encoding: .utf8)!
     }
 

@@ -85,6 +85,11 @@ struct HomeView: View {
         .fullScreenCover(isPresented: $showMeasurementView) {
             MeasurementView(measuremetViewController: measuremetViewController)
         }
+        .onChange(of: showMeasurementView) { newValue in
+            if newValue == false {
+                measuremetViewController.startCalc()
+            }
+        }
         .onAppear {
             // AirPodsのデータ取得を開始
             // デリゲートを手動で設定（UIViewControllerのviewDidLoadが呼ばれないため）
