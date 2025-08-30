@@ -26,18 +26,7 @@ struct MeasurementView: View {
             
             // グラフ表示部分
             if !measuremetViewController.graphDataPoints.isEmpty {
-                Chart(measuremetViewController.graphDataPoints) { point in
-                    LineMark(
-                        x: .value("Time", point.time),
-                        y: .value("Value", point.value)
-                    )
-                    .foregroundStyle(.blue)
-                    .lineStyle(StrokeStyle(lineWidth: 2))
-                }
-                .chartXAxis(.hidden) // X軸を非表示
-                .chartYAxis(.hidden) // Y軸を非表示
-                .frame(width: 337, height: 121)
-                .padding(.top, 30.0)
+                LineGraphModule(graphDataPoints: measuremetViewController.graphDataPoints)
             }
             
             Spacer()
