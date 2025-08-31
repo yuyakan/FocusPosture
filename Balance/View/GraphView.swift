@@ -387,8 +387,7 @@ extension DailySection {
         }
         
         private var averageScore: Int {
-            focusSessionData.scores.isEmpty ? 0 : 
-                Int(focusSessionData.scores.reduce(0, +) / Double(focusSessionData.scores.count))
+            focusSessionData.scores.isEmpty ? 0 : Int(focusSessionData.focusRatio * 100)
         }
         
         private var workDuration: Int {

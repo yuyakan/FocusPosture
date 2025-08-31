@@ -28,9 +28,18 @@ public final class FocusSessionData: Codable, Identifiable, Sendable {
     public var endDate: Date//計測を終了した時間
 
     var scoresJSON: String //
+
+    // 首振りの動きの大きさ
     var scores: [Double] {//1秒ごとの 首振りの動き)
         get { (try? JSONDecoder().decode([Double].self, from: Data(scoresJSON.utf8))) ?? [] }
         set { scoresJSON = String(data: try! JSONEncoder().encode(newValue), encoding: .utf8)! }
+    }
+
+    // 閾値をどれくらい超えたか
+    var focusRatio: Double {
+        let thresholedScores = scores.map { $0 * 100 < threshold }.map { $0 ? 1 : 0 }
+        let ratio = Double(thresholedScores.reduce(0, +)) / Double(thresholedScores.count)
+        return ratio
     }
 
     // Total Focus Time in `minutes`
@@ -38,9 +47,7 @@ public final class FocusSessionData: Codable, Identifiable, Sendable {
         let diff = endDate.timeIntervalSince(startDate)
         if diff >= 60 && !diff.isNaN && diff.isFinite {
             let diffMinutes: Double = Double(diff)/60.0
-            let thresholedScores = scores.map { $0 < threshold }.map { $0 ? 1 : 0 }
-            let ratio = Double(thresholedScores.reduce(0, +)) / Double(thresholedScores.count)
-            let totalFocusTimeDouble = diffMinutes * ratio
+            let totalFocusTimeDouble = diffMinutes * self.focusRatio
             return Int(totalFocusTimeDouble)
         } else {
             return 0
