@@ -355,7 +355,7 @@ extension DailySection {
                             .padding(.horizontal)
                         
                         LineGraphModule(
-                            graphDataPoints: focusSessionData.scores.enumerated().map { index, score in
+                            graphDataPoints: focusSessionData.focusScoresForGraph.enumerated().map { index, score in
                                 return .init(
                                     time: Double(index),
                                     value: score,

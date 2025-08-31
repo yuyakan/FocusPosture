@@ -35,6 +35,35 @@ public final class FocusSessionData: Codable, Identifiable, Sendable {
         set { scoresJSON = String(data: try! JSONEncoder().encode(newValue), encoding: .utf8)! }
     }
 
+    // `scores`は首振りの大きさを表している。
+    // 1. Thresholdを越えてないものを true(1.0)に変換 (true = focus)
+    // 2. 一定のwindow sizeで平均を取る。
+    // 3. 集中度の高さとして、[0.0~1.0]で返す。
+    var focusScoresForGraph: [Double] {
+        let thresholdScores = scores.map { $0 * 100 < threshold }.map { $0 ? 1.0 : 0.0 }
+
+        let windowSize = if scores.count > 100 {
+            100
+        } else if scores.count > 10 {
+            10
+        } else {
+            1
+        }
+
+
+        var windowSums: [Double] = []
+        var windowSum = thresholdScores.prefix(windowSize).reduce(0, +)
+        windowSums.append(windowSum / Double(windowSize))
+
+        //prevent crash
+        guard windowSize < scores.count else { return [] }
+        for i in windowSize..<scores.count {
+            windowSum += thresholdScores[i] - thresholdScores[i - windowSize]
+            windowSums.append(windowSum/Double(windowSize))
+        }
+        return windowSums
+    }
+
     // 閾値をどれくらい超えたか
     var focusRatio: Double {
         let thresholedScores = scores.map { $0 * 100 < threshold }.map { $0 ? 1 : 0 }

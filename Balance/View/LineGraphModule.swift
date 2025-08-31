@@ -44,6 +44,8 @@ struct LineGraphModule: View {
                     .foregroundStyle(Color.white.opacity(0.3))
             }
         }
+        .chartYAxisLabel("Focus Level", alignment: .leading)
+        .chartYScale(domain: 0...1) // X軸の範囲を固定
         .chartYAxis {
             AxisMarks(position: .leading) { _ in
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
