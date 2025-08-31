@@ -28,9 +28,47 @@ public final class FocusSessionData: Codable, Identifiable, Sendable {
     public var endDate: Date//計測を終了した時間
 
     var scoresJSON: String //
+
+    // 首振りの動きの大きさ
     var scores: [Double] {//1秒ごとの 首振りの動き)
         get { (try? JSONDecoder().decode([Double].self, from: Data(scoresJSON.utf8))) ?? [] }
         set { scoresJSON = String(data: try! JSONEncoder().encode(newValue), encoding: .utf8)! }
+    }
+
+    // `scores`は首振りの大きさを表している。
+    // 1. Thresholdを越えてないものを true(1.0)に変換 (true = focus)
+    // 2. 一定のwindow sizeで平均を取る。
+    // 3. 集中度の高さとして、[0.0~1.0]で返す。
+    var focusScoresForGraph: [Double] {
+        let thresholdScores = scores.map { $0 * 100 < threshold }.map { $0 ? 1.0 : 0.0 }
+
+        let windowSize = if scores.count > 100 {
+            100
+        } else if scores.count > 10 {
+            10
+        } else {
+            1
+        }
+
+
+        var windowSums: [Double] = []
+        var windowSum = thresholdScores.prefix(windowSize).reduce(0, +)
+        windowSums.append(windowSum / Double(windowSize))
+
+        //prevent crash
+        guard windowSize < scores.count else { return [] }
+        for i in windowSize..<scores.count {
+            windowSum += thresholdScores[i] - thresholdScores[i - windowSize]
+            windowSums.append(windowSum/Double(windowSize))
+        }
+        return windowSums
+    }
+
+    // 閾値をどれくらい超えたか
+    var focusRatio: Double {
+        let thresholedScores = scores.map { $0 * 100 < threshold }.map { $0 ? 1 : 0 }
+        let ratio = Double(thresholedScores.reduce(0, +)) / Double(thresholedScores.count)
+        return ratio
     }
 
     // Total Focus Time in `minutes`
@@ -38,9 +76,7 @@ public final class FocusSessionData: Codable, Identifiable, Sendable {
         let diff = endDate.timeIntervalSince(startDate)
         if diff >= 60 && !diff.isNaN && diff.isFinite {
             let diffMinutes: Double = Double(diff)/60.0
-            let thresholedScores = scores.map { $0 < threshold }.map { $0 ? 1 : 0 }
-            let ratio = Double(thresholedScores.reduce(0, +)) / Double(thresholedScores.count)
-            let totalFocusTimeDouble = diffMinutes * ratio
+            let totalFocusTimeDouble = diffMinutes * self.focusRatio
             return Int(totalFocusTimeDouble)
         } else {
             return 0

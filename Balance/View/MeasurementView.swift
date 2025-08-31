@@ -423,7 +423,7 @@ struct GraphDisplayCard: View {
                 Image(systemName: "chart.line.uptrend.xyaxis")
                     .font(.body)
                     .foregroundColor(.white.opacity(0.8))
-                Text("集中度の推移")
+                Text("頭の動きの大きさ")
                     .font(.system(size: 15, weight: .medium, design: .rounded))
                     .foregroundColor(.white.opacity(0.8))
                 Spacer()

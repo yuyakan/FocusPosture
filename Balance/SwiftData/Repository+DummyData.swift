@@ -173,6 +173,6 @@ extension FocusSessionDataRepository {
             }
         }
         
-        return scores
+        return scores.map { $0 * 0.01 }
     }
 }
