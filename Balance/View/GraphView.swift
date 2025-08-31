@@ -89,7 +89,36 @@ struct GraphView: View {
                     guard let targetDate = calendar.date(byAdding: .day, value: -daysAgo, to: today) else { continue }
                     
                     if let dailySessions = try? await repository.get(with: targetDate) {
-                        allSessions.append(contentsOf: dailySessions)
+                        // scoresを100個に1個にサンプリング（最初と最後は必ず含む）
+                        let sampledSessions = dailySessions.map { session in
+                            let scores = session.scores
+                            guard scores.count > 2 else {
+                                // 要素が2個以下の場合はそのまま返す
+                                return session
+                            }
+                            
+                            var sampledScores: [Double] = []
+                            
+                            // 最初の要素を追加
+                            sampledScores.append(scores[0])
+                            
+                            // 中間の要素を100個に1個サンプリング
+                            for index in 1..<(scores.count - 1) {
+                                if index % 25 == 0 {
+                                    sampledScores.append(scores[index])
+                                }
+                            }
+                            
+                            // 最後の要素を追加
+                            sampledScores.append(scores[scores.count - 1])
+                            
+                            return FocusSessionData(
+                                startDate: session.startDate,
+                                endDate: session.endDate,
+                                scores: sampledScores
+                            )
+                        }
+                        allSessions.append(contentsOf: sampledSessions)
                     }
                 }
                 weeklyFocusSessionDatas = allSessions.sorted { $0.startDate > $1.startDate }
