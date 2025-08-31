@@ -16,13 +16,9 @@ struct GraphView: View {
 
     var body: some View {
         ZStack {
-            // ダークモード固定背景
+            // HomeViewと同じグラデーション背景
             LinearGradient(
-                colors: [
-                    Color.black,
-                    Color(red: 0.1, green: 0.1, blue: 0.2),
-                    Color(red: 0.05, green: 0.05, blue: 0.15)
-                ],
+                gradient: Gradient(colors: [Color("SplashColor"), Color.blue.opacity(0.6)]),
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -30,21 +26,6 @@ struct GraphView: View {
             
             ScrollView {
                 VStack(spacing: 30) {
-                    // ヘッダー
-                    VStack(spacing: 15) {
-                        Text("記録")
-                            .font(.system(size: 36, weight: .bold, design: .rounded))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [.white, .white.opacity(0.8)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 2)
-                            .padding(.top, 20)
-                    }
-                    
                     // 週間グラフセクション
                     GraphSectionCard(
                         title: "週間の集中時間",
@@ -74,8 +55,8 @@ struct GraphView: View {
             }
         }
         .preferredColorScheme(.dark)  // ダークモード固定
-        .navigationTitle("")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationTitle("記録")
+        .navigationBarTitleDisplayMode(.large)
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
