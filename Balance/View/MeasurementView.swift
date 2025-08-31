@@ -188,8 +188,27 @@ struct MeasurementView: View {
                     
                     // グラフ表示
                     if !measuremetViewController.graphDataPoints.isEmpty {
-                        GraphDisplayCard(graphDataPoints: measuremetViewController.graphDataPoints)
-                            .frame(maxHeight: 180)
+                        // 計測中、頭の動きの大きさのグラフ
+                        if isMeasuring {
+                            GraphDisplayCard(graphDataPoints: measuremetViewController.graphDataPoints)
+                                .frame(maxHeight: 180)
+                        } else {
+                            // 結果画面、集中度合いのグラフ
+                            let scores = measuremetViewController.scores.map { $0.score }
+                            let startedTime = measuremetViewController.startedTime ?? .now
+                            let data: FocusSessionData = .init(startDate: startedTime, endDate: Date.now, scores: scores)
+
+                            LineGraphModule(
+                                graphDataPoints: data.focusScoresForGraph.enumerated().map { index, score in
+                                    return .init(
+                                        time: Double(index),
+                                        value: score,
+                                        attiude: .init()
+                                    )
+                                },
+                                isAnimationEnabled: false
+                            )
+                        }
                     }
                 }
                 .padding(.horizontal, 20)
