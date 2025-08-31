@@ -109,7 +109,7 @@ class SensorMeasurementManager: UIViewController, CMHeadphoneMotionManagerDelega
         
         // accelerationとrotationRateの合成値をグラフ表示用に計算
         let accelValue = abs(data.userAcceleration.x) + abs(data.userAcceleration.y) + abs(data.userAcceleration.z)
-        let rotateValue = (abs(data.rotationRate.x) + abs(data.rotationRate.y) + abs(data.rotationRate.z)) * 0.3
+        let rotateValue = (abs(data.rotationRate.x) + abs(data.rotationRate.y)) * 0.3
         let combinedValue = accelValue + rotateValue
         
         let dataPoint = GraphDataPoint(time: currentElapsedTime, value: combinedValue, attiude: data.attitude)
