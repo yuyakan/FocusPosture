@@ -146,16 +146,32 @@ struct MeasurementView: View {
                         Text("スコア")
                             .font(.system(size: 16, weight: .medium, design: .rounded))
                             .foregroundColor(.white.opacity(0.7))
-                        Text(String(Int(measuremetViewController.displayScore)))
-                            .font(.system(size: 42, weight: .bold, design: .rounded))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [.white, .white.opacity(0.7)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
+                        if isMeasuring {
+                            Text(String(Int(measuremetViewController.displayScore)))
+                                .font(.system(size: 42, weight: .bold, design: .rounded))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [.white, .white.opacity(0.7)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
                                 )
-                            )
-                            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                                .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                        } else {
+                            let scores = measuremetViewController.scores.map { $0.score }
+                            let startedTime = measuremetViewController.startedTime ?? .now
+                            let data: FocusSessionData = .init(startDate: startedTime, endDate: Date.now, scores: scores)
+                            Text(String(Int(data.focusRatio * 100)))
+                                .font(.system(size: 42, weight: .bold, design: .rounded))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [.white, .white.opacity(0.7)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                        }
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 15)

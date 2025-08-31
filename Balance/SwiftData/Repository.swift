@@ -68,6 +68,9 @@ public final class FocusSessionData: Codable, Identifiable, Sendable {
     var focusRatio: Double {
         let thresholedScores = scores.map { $0 * 100 < threshold }.map { $0 ? 1 : 0 }
         let ratio = Double(thresholedScores.reduce(0, +)) / Double(thresholedScores.count)
+        if ratio.isNaN || ratio.isInfinite {
+            return .zero
+        }
         return ratio
     }
 
