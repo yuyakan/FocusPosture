@@ -208,6 +208,15 @@ struct MeasurementView: View {
                                 },
                                 isAnimationEnabled: false
                             )
+                            .padding(10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 18)
+                                    .fill(.ultraThinMaterial)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 18)
+                                            .stroke(.white.opacity(0.2), lineWidth: 1)
+                                    )
+                            )
                         }
                     }
                 }
